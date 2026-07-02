@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
    Agora com 3 tipos de desafio:
    · QUIZ     — múltipla escolha
    · ENCAIXE  — quebra-cabeça: monta o código peça por peça
-   · CÓDIGO   — digita de verdade, roda, vê na tela, com lint gente boa
+   · CÓDIGO   — digita de verdade, roda, vê na tela, com lint amigável
    React roda AO VIVO num sandbox. Java é validado com lint amigável
    (a saída é simulada — Java precisa da JVM, não roda no navegador).
    ===================================================================== */
@@ -14,9 +14,9 @@ const STORAGE_KEY = 'dev_do_corre_v1';
 
 const LEVELS = [
   { min: 0, nome: 'Estagiário do Corre' },
-  { min: 160, nome: 'Jr. da Quebrada' },
-  { min: 320, nome: 'Pleno de Respeito' },
-  { min: 500, nome: 'Sênior Brabo' },
+  { min: 160, nome: 'Dev Júnior' },
+  { min: 320, nome: 'Dev Pleno' },
+  { min: 500, nome: 'Dev Sênior' },
   { min: 700, nome: 'Tech Lead do Extremo Sul' },
 ];
 
@@ -119,7 +119,7 @@ function lintDelimitadores(codigo) {
   return avisos;
 }
 
-// Erros clássicos de quem tá começando no Java, explicados na boa.
+// Erros clássicos de quem está começando no Java, explicados com calma.
 function lintJava(codigo) {
   const avisos = [];
   const linhas = codigo.split('\n');
@@ -185,10 +185,10 @@ function traduzErro(msg) {
     return 'Não achei um componente chamado App. O desafio precisa de um function App() { ... } — é ele que o jogo renderiza na tela.';
   }
   if ((m = msg.match(/ReferenceError:?\s*(\w+) is not defined/)) || (m = msg.match(/(\w+) is not defined/))) {
-    return 'Você usou "' + m[1] + '", mas essa variável/função não existe (ainda). Ou faltou criar, ou o nome tá escrito diferente — e maiúscula/minúscula conta!';
+    return 'Você usou "' + m[1] + '", mas essa variável/função não existe (ainda). Ou faltou criar, ou o nome está escrito diferente — e maiúscula/minúscula conta!';
   }
   if ((m = msg.match(/([\w.$]+) is not a function/))) {
-    return '"' + m[1] + '" não é uma função. Confere se o nome tá certo — ou se essa variável tá guardando outra coisa sem você perceber.';
+    return '"' + m[1] + '" não é uma função. Confere se o nome está certo — ou se essa variável está guardando outra coisa sem você perceber.';
   }
   if (/Adjacent JSX elements/i.test(msg)) {
     return 'O return do JSX só aceita UM elemento pai. Embrulha tudo numa <div> ... </div> (ou num fragmento <> ... </>).';
@@ -203,15 +203,15 @@ function traduzErro(msg) {
     return 'O código tropeçou em algo inesperado perto da linha ' + m[1] + ' do seu código. Normalmente é chave/parêntese fora do lugar, vírgula sobrando, ou algo que não fechou na linha de cima.';
   }
   if (/Unexpected token/i.test(msg)) {
-    return 'Tem um caractere fora do lugar — geralmente chave, parêntese ou vírgula. Olha com carinho o começo e o fim de cada linha.';
+    return 'Tem um caractere fora do lugar — geralmente chave, parêntese ou vírgula. Revisa o começo e o fim de cada linha.';
   }
   if (/Cannot read propert/i.test(msg)) {
-    return 'Você tentou acessar algo dentro de um valor que tá undefined ou null. Confere se a variável foi preenchida ANTES de usar.';
+    return 'Você tentou acessar algo dentro de um valor que está undefined ou null. Confere se a variável foi preenchida ANTES de usar.';
   }
   if (/Maximum update depth|Too many re-renders/i.test(msg)) {
-    return 'Loop infinito de renderização! Provavelmente você tá chamando a função set direto no corpo do componente (ou num useEffect sem array de dependências).';
+    return 'Loop infinito de renderização! Provavelmente você está chamando a função set direto no corpo do componente (ou num useEffect sem array de dependências).';
   }
-  return 'O erro cru foi: "' + msg + '". Lê com calma — geralmente ele mesmo entrega a pista. Se travar, pede uma dica aí embaixo. 💛';
+  return 'O erro cru foi: "' + msg + '". Lê com calma — geralmente ele mesmo entrega a pista. Se travar, pede uma dica aí embaixo.';
 }
 
 /* ---------- SANDBOX: React rodando de verdade num iframe ---------- */
@@ -264,295 +264,295 @@ const CSS = String.raw`
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 .ddc {
-  --ink: #14141d;
-  --asfalto: #1e1e2a;
-  --asfalto-2: #262635;
-  --linha: #34344a;
-  --amarelo: #ffd23f;
-  --rosa: #ff4d8d;
-  --verde: #3ddc84;
-  --vermelho: #ff5c5c;
-  --papel: #f2f0e9;
-  --cinza: #9a98ac;
+  --papel: #EFE9DC;
+  --tinta: #0D0D0D;
+  --branco: #FFFFFF;
+  --laranja: #FF4D00;
+  --lima: #B8F53C;
+  --azul: #2B2BFF;
+  --vermelho: #FF2E2E;
+  --salmao: #FFB3A7;
+  --cinza: #6B6659;
+  --amarelo-claro: #FFF3B0;
 
   min-height: 100vh;
-  background:
-    radial-gradient(1200px 500px at 80% -10%, rgba(255, 77, 141, 0.08), transparent 60%),
-    radial-gradient(900px 500px at 10% 110%, rgba(255, 210, 63, 0.06), transparent 60%),
-    var(--ink);
-  color: var(--papel);
+  background: var(--papel);
+  color: var(--tinta);
   font-family: 'Space Grotesk', system-ui, sans-serif;
   display: flex;
   justify-content: center;
-  padding: 20px 14px 48px;
+  padding: 24px 14px 56px;
   box-sizing: border-box;
 }
 .ddc *, .ddc *::before, .ddc *::after { box-sizing: border-box; }
-.ddc-shell { width: 100%; max-width: 560px; }
+.ddc-shell { width: 100%; max-width: 580px; }
 
 /* ---------- letreiro de busão (assinatura) ---------- */
 .letreiro {
-  position: relative;
-  background: #0b0b11;
-  border: 3px solid #000;
-  border-radius: 10px;
-  padding: 18px 16px 14px;
-  overflow: hidden;
-  box-shadow: 0 6px 0 #000;
-}
-.letreiro::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, transparent 34%, #0b0b11 38%);
-  background-size: 5px 5px;
-  pointer-events: none;
+  background: var(--branco);
+  border: 4px solid var(--tinta);
+  box-shadow: 10px 10px 0 var(--tinta);
 }
 .letreiro-rota {
+  background: var(--tinta);
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px; letter-spacing: 3px;
-  color: var(--rosa); margin: 0 0 6px; text-transform: uppercase;
+  color: var(--laranja); margin: 0; padding: 9px 16px;
+  text-transform: uppercase;
 }
 .letreiro-dest {
   font-family: 'Archivo Black', sans-serif;
-  font-size: clamp(30px, 9vw, 46px);
-  line-height: 0.95; color: var(--amarelo); margin: 0;
+  font-size: clamp(34px, 10vw, 56px);
+  line-height: 0.9; color: var(--tinta); margin: 0; padding: 18px 16px 14px;
   text-transform: uppercase; letter-spacing: 1px; white-space: pre-line;
 }
 .letreiro-sub {
+  background: var(--lima);
+  border-top: 4px solid var(--tinta);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; letter-spacing: 2px; color: var(--papel);
-  opacity: 0.75; margin: 8px 0 0; text-transform: uppercase;
+  font-size: 11px; letter-spacing: 2px; color: var(--tinta);
+  margin: 0; padding: 8px 16px; text-transform: uppercase;
 }
-.letreiro--mini { padding: 10px 14px 8px; }
-.letreiro--mini .letreiro-dest { font-size: 18px; letter-spacing: 0.5px; }
+.letreiro--mini { box-shadow: 8px 8px 0 var(--tinta); }
+.letreiro--mini .letreiro-rota { font-size: 10px; letter-spacing: 2px; padding: 7px 14px; }
+.letreiro--mini .letreiro-dest { font-size: 22px; letter-spacing: 0.5px; padding: 12px 14px; }
 
 /* ---------- botões ---------- */
 .btn {
   font-family: 'Archivo Black', sans-serif;
   text-transform: uppercase; letter-spacing: 1px; font-size: 15px;
-  border: 3px solid #000; border-radius: 10px;
+  border: 3px solid var(--tinta); border-radius: 0;
   padding: 14px 18px; cursor: pointer; width: 100%;
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  background: var(--branco); color: var(--tinta);
+  box-shadow: 5px 5px 0 var(--tinta);
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
-.btn:focus-visible { outline: 3px solid var(--rosa); outline-offset: 3px; }
-.btn-amarelo { background: var(--amarelo); color: #14141d; box-shadow: 0 5px 0 #000; }
-.btn-rosa { background: var(--rosa); color: #14141d; box-shadow: 0 5px 0 #000; }
-.btn-verde { background: var(--verde); color: #14141d; box-shadow: 0 5px 0 #000; }
+.btn:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; }
+.btn-laranja { background: var(--laranja); }
+.btn-azul { background: var(--azul); color: #fff; }
+.btn-lima { background: var(--lima); }
 .btn-fantasma {
-  background: transparent; color: var(--papel);
-  border-color: var(--linha); box-shadow: none;
+  background: var(--papel); color: var(--tinta);
+  border-width: 2px; box-shadow: none;
   font-family: 'Space Grotesk', sans-serif; font-weight: 700;
   font-size: 13px; padding: 10px 14px; text-transform: none; letter-spacing: 0;
 }
-.btn:not(:disabled):active { transform: translateY(4px); box-shadow: 0 1px 0 #000; }
+.btn:not(:disabled):active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--tinta); }
+.btn-fantasma:not(:disabled):active { transform: translate(2px, 2px); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.toolbar { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.toolbar .btn { width: auto; flex: 1; min-width: 120px; font-size: 13px; padding: 11px 12px; }
+.toolbar { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.toolbar .btn { width: auto; flex: 1; min-width: 120px; font-size: 13px; padding: 12px; }
 
 /* ---------- barra de XP ---------- */
-.xp-wrap { background: var(--asfalto); border: 2px solid var(--linha); border-radius: 10px; padding: 10px 12px; margin: 14px 0; }
+.xp-wrap { background: var(--branco); border: 3px solid var(--tinta); box-shadow: 6px 6px 0 var(--tinta); padding: 12px 14px; margin: 18px 0; }
 .xp-top {
   display: flex; justify-content: space-between; align-items: baseline;
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; gap: 8px;
 }
-.xp-nivel { color: var(--amarelo); font-weight: 700; }
+.xp-nivel { background: var(--lima); border: 2px solid var(--tinta); padding: 2px 8px; font-weight: 700; }
 .xp-pts { color: var(--cinza); }
-.xp-bar { height: 10px; background: #0b0b11; border-radius: 6px; overflow: hidden; border: 1px solid #000; }
+.xp-bar { height: 16px; background: var(--papel); border: 2px solid var(--tinta); overflow: hidden; }
 .xp-fill {
   height: 100%;
-  background: repeating-linear-gradient(45deg, var(--amarelo), var(--amarelo) 8px, #e5b414 8px, #e5b414 16px);
+  background: repeating-linear-gradient(45deg, var(--laranja), var(--laranja) 8px, var(--tinta) 8px, var(--tinta) 10px);
   transition: width 0.5s ease;
 }
 
 /* ---------- trilha (linha de busão) ---------- */
-.trilha { position: relative; margin-top: 8px; padding-left: 34px; }
+.trilha { position: relative; margin-top: 6px; padding-left: 46px; }
 .trilha::before {
-  content: ''; position: absolute; left: 13px; top: 10px; bottom: 24px;
-  width: 0; border-left: 4px dashed var(--amarelo); opacity: 0.55;
+  content: ''; position: absolute; left: 17px; top: 8px; bottom: 30px;
+  width: 5px; background: var(--tinta);
 }
-.parada { position: relative; margin-bottom: 14px; }
+.parada { position: relative; margin-bottom: 16px; }
 .parada-dot {
-  position: absolute; left: -34px; top: 16px;
-  width: 30px; height: 30px; border-radius: 50%;
-  border: 3px solid #000; display: flex; align-items: center; justify-content: center;
-  font-family: 'Archivo Black', sans-serif; font-size: 13px;
-  background: var(--asfalto-2); color: var(--cinza); z-index: 1;
+  position: absolute; left: -46px; top: 14px;
+  width: 38px; height: 38px;
+  border: 3px solid var(--tinta); display: flex; align-items: center; justify-content: center;
+  font-family: 'Archivo Black', sans-serif; font-size: 14px;
+  background: var(--branco); color: var(--tinta); z-index: 1;
+  box-shadow: 3px 3px 0 var(--tinta);
 }
-.parada-dot--feito { background: var(--verde); color: #14141d; }
-.parada-dot--atual { background: var(--amarelo); color: #14141d; animation: pulsa 1.6s ease-in-out infinite; }
+.parada-dot--feito { background: var(--lima); }
+.parada-dot--atual { background: var(--laranja); animation: pulsa 1.6s ease-in-out infinite; }
 @keyframes pulsa {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 210, 63, 0.5); }
-  50% { box-shadow: 0 0 0 9px rgba(255, 210, 63, 0); }
+  0%, 100% { box-shadow: 3px 3px 0 var(--tinta); }
+  50% { box-shadow: 3px 3px 0 var(--tinta), 0 0 0 8px rgba(255, 77, 0, 0.25); }
 }
 .parada-card {
   width: 100%; text-align: left;
-  background: var(--asfalto); border: 2px solid var(--linha); border-radius: 12px;
-  padding: 14px; color: var(--papel); cursor: pointer;
+  background: var(--branco); border: 3px solid var(--tinta); border-radius: 0;
+  box-shadow: 5px 5px 0 var(--tinta);
+  padding: 14px; color: var(--tinta); cursor: pointer;
   font-family: 'Space Grotesk', sans-serif;
-  transition: transform 0.08s ease, border-color 0.15s ease;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
-.parada-card:not(:disabled):hover { border-color: var(--amarelo); transform: translateX(3px); }
-.parada-card:focus-visible { outline: 3px solid var(--rosa); outline-offset: 2px; }
-.parada-card:disabled { opacity: 0.5; cursor: not-allowed; }
+.parada-card:not(:disabled):hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--tinta); }
+.parada-card:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.parada-card:disabled { opacity: 0.45; cursor: not-allowed; }
 .parada-tag {
   font-family: 'JetBrains Mono', monospace; font-size: 10px;
-  letter-spacing: 2px; color: var(--rosa); text-transform: uppercase;
+  letter-spacing: 2px; color: var(--azul); text-transform: uppercase; font-weight: 700;
   display: flex; justify-content: space-between; gap: 8px;
 }
-.parada-nome { font-family: 'Archivo Black', sans-serif; font-size: 16px; margin: 5px 0 2px; text-transform: uppercase; }
-.parada-local { font-size: 12px; color: var(--amarelo); font-weight: 700; margin-bottom: 4px; }
+.parada-nome { font-family: 'Archivo Black', sans-serif; font-size: 17px; margin: 6px 0 2px; text-transform: uppercase; line-height: 1.1; }
+.parada-local { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--laranja); font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
 .parada-desc { font-size: 13px; color: var(--cinza); margin: 0; line-height: 1.4; }
-.parada-score { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--verde); font-weight: 700; }
+.parada-score { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--tinta); background: var(--lima); padding: 0 5px; font-weight: 700; }
 
 /* ---------- cartões ---------- */
-.card { background: var(--asfalto); border: 2px solid var(--linha); border-radius: 12px; padding: 18px 16px; margin: 14px 0; }
+.card { background: var(--branco); border: 3px solid var(--tinta); box-shadow: 6px 6px 0 var(--tinta); padding: 18px 16px; margin: 16px 0; }
 .card-titulo {
-  font-family: 'Archivo Black', sans-serif; font-size: 19px;
-  margin: 0 0 10px; text-transform: uppercase; color: var(--amarelo); line-height: 1.15;
+  font-family: 'Archivo Black', sans-serif; font-size: 20px;
+  margin: 0; text-transform: uppercase; color: var(--tinta); line-height: 1.4;
+  background: var(--lima); display: inline; padding: 0 4px;
+  box-decoration-break: clone; -webkit-box-decoration-break: clone;
 }
-.card-txt { font-size: 15px; line-height: 1.6; margin: 0; color: var(--papel); }
+.card-titulo + .card-txt { margin-top: 12px; }
+.card-txt { font-size: 15px; line-height: 1.6; margin: 0; color: var(--tinta); }
 
 .code {
-  display: block; background: #0b0b11;
-  border: 2px solid #000; border-left: 5px solid var(--rosa);
-  border-radius: 8px; padding: 12px 14px; margin-top: 12px;
+  display: block; background: var(--tinta);
+  border-left: 6px solid var(--laranja);
+  padding: 12px 14px; margin-top: 14px;
   font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.6;
-  color: #d8f7c2; white-space: pre-wrap; word-break: break-word;
+  color: var(--lima); white-space: pre-wrap; word-break: break-word;
 }
 
 .pager {
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
   letter-spacing: 2px; color: var(--cinza); text-transform: uppercase;
-  text-align: center; margin: 10px 0 4px;
+  text-align: center; margin: 12px 0 4px;
 }
 
 /* ---------- desafios ---------- */
 .quiz-topo {
   display: flex; justify-content: space-between; align-items: center; gap: 8px;
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  letter-spacing: 1.5px; text-transform: uppercase; color: var(--cinza);
-  margin: 14px 2px 8px;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--tinta);
+  margin: 16px 2px 8px;
 }
-.quiz-streak { color: var(--rosa); font-weight: 700; }
+.quiz-streak { color: var(--laranja); font-weight: 700; }
 .tipo-badge {
   font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1.5px;
-  border: 1.5px solid var(--rosa); color: var(--rosa);
-  border-radius: 5px; padding: 2px 7px; text-transform: uppercase;
+  border: 2px solid var(--azul); color: var(--azul); font-weight: 700;
+  padding: 2px 7px; text-transform: uppercase;
 }
 .quiz-q { font-family: 'Archivo Black', sans-serif; font-size: 18px; line-height: 1.3; margin: 0 0 6px; }
-.enunciado { font-size: 14.5px; line-height: 1.55; color: var(--papel); margin: 6px 0 0; }
+.enunciado { font-size: 14.5px; line-height: 1.55; color: var(--tinta); margin: 6px 0 0; }
 
 .missao {
-  background: rgba(255, 210, 63, 0.07);
-  border: 2px dashed var(--amarelo); border-radius: 10px;
-  padding: 10px 12px; font-size: 13.5px; margin-top: 12px;
-  color: var(--papel); line-height: 1.5;
+  background: var(--amarelo-claro);
+  border: 3px solid var(--tinta);
+  padding: 10px 12px; font-size: 13.5px; margin-top: 14px;
+  color: var(--tinta); line-height: 1.5;
 }
-.missao b { color: var(--amarelo); }
+.missao b { color: var(--tinta); }
+.missao--dica { background: var(--branco); border: 3px dashed var(--azul); }
 .alvos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .alvo {
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  border: 1.5px solid var(--linha); border-radius: 6px;
-  padding: 3px 8px; color: var(--cinza); background: #0b0b11;
+  border: 2px solid var(--tinta);
+  padding: 3px 8px; color: var(--tinta); background: var(--branco); font-weight: 700;
 }
-.alvo--ok { border-color: var(--verde); color: var(--verde); }
+.alvo--ok { background: var(--lima); }
 .alvo--ok::before { content: '✓ '; }
 
-.opts { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.opts { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 .opt {
-  text-align: left; background: var(--asfalto-2);
-  border: 2px solid var(--linha); border-radius: 10px;
-  padding: 13px 14px; color: var(--papel);
+  text-align: left; background: var(--branco);
+  border: 3px solid var(--tinta);
+  padding: 13px 14px; color: var(--tinta);
   font-family: 'Space Grotesk', sans-serif; font-size: 14.5px; font-weight: 500;
   cursor: pointer; display: flex; gap: 10px; align-items: flex-start;
-  transition: border-color 0.12s ease, transform 0.08s ease;
+  box-shadow: 3px 3px 0 var(--tinta);
+  transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.12s ease;
 }
-.opt:not(:disabled):hover { border-color: var(--amarelo); }
-.opt:not(:disabled):active { transform: scale(0.99); }
-.opt:focus-visible { outline: 3px solid var(--rosa); outline-offset: 2px; }
+.opt:not(:disabled):hover { background: var(--amarelo-claro); }
+.opt:not(:disabled):active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--tinta); }
+.opt:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
 .opt:disabled { cursor: default; }
 .opt-letra {
   font-family: 'Archivo Black', sans-serif; font-size: 12px;
-  background: #0b0b11; border: 2px solid var(--linha); border-radius: 6px;
+  background: var(--tinta); color: var(--branco);
   min-width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.opt--certa { border-color: var(--verde); background: rgba(61, 220, 132, 0.12); }
-.opt--certa .opt-letra { border-color: var(--verde); color: var(--verde); }
-.opt--errada { border-color: var(--vermelho); background: rgba(255, 92, 92, 0.12); }
-.opt--errada .opt-letra { border-color: var(--vermelho); color: var(--vermelho); }
-.opt--apagada { opacity: 0.45; }
+.opt--certa { background: var(--lima); }
+.opt--errada { background: var(--salmao); }
+.opt--apagada { opacity: 0.4; }
 
-.feedback { border-radius: 12px; border: 2px solid; padding: 14px; margin-top: 14px; animation: sobe 0.25s ease; }
+.feedback { border: 3px solid var(--tinta); box-shadow: 4px 4px 0 var(--tinta); padding: 14px; margin-top: 16px; animation: sobe 0.25s ease; }
 @keyframes sobe { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.feedback--ok { border-color: var(--verde); background: rgba(61, 220, 132, 0.08); }
-.feedback--ruim { border-color: var(--vermelho); background: rgba(255, 92, 92, 0.08); }
-.feedback-titulo { font-family: 'Archivo Black', sans-serif; font-size: 15px; text-transform: uppercase; margin: 0 0 6px; }
-.feedback--ok .feedback-titulo { color: var(--verde); }
-.feedback--ruim .feedback-titulo { color: var(--vermelho); }
-.feedback-txt { font-size: 14px; line-height: 1.55; margin: 0; color: var(--papel); }
+.feedback--ok { background: var(--lima); }
+.feedback--ruim { background: var(--salmao); }
+.feedback-titulo { font-family: 'Archivo Black', sans-serif; font-size: 15px; text-transform: uppercase; margin: 0 0 6px; color: var(--tinta); }
+.feedback-txt { font-size: 14px; line-height: 1.55; margin: 0; color: var(--tinta); }
 
 /* ---------- editor de código ---------- */
-.editor { border: 2px solid #000; border-radius: 10px; overflow: hidden; background: #0b0b11; margin-top: 12px; }
+.editor { border: 3px solid var(--tinta); overflow: hidden; background: var(--tinta); margin-top: 14px; box-shadow: 5px 5px 0 var(--tinta); }
 .editor-topo {
-  display: flex; align-items: center; gap: 6px;
-  background: #15151d; padding: 8px 10px; border-bottom: 2px solid #000;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--laranja); padding: 8px 10px; border-bottom: 3px solid var(--tinta);
 }
-.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.d1 { background: #ff5c5c; } .d2 { background: #ffd23f; } .d3 { background: #3ddc84; }
+.dot { width: 12px; height: 12px; display: inline-block; }
+.d1 { background: var(--tinta); } .d2 { background: var(--branco); } .d3 { background: var(--lima); }
 .editor-arquivo {
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  color: var(--cinza); margin-left: 6px; letter-spacing: 1px;
+  color: var(--tinta); margin-left: 6px; letter-spacing: 1px; font-weight: 700;
 }
 .editor-corpo { display: flex; align-items: stretch; }
 .editor-nums {
   margin: 0; padding: 12px 8px; font-family: 'JetBrains Mono', monospace;
-  font-size: 13px; line-height: 1.55; color: #4a4a5e; text-align: right;
-  user-select: none; background: #0b0b11; border-right: 1px solid #22222e;
+  font-size: 13px; line-height: 1.55; color: #6B6659; text-align: right;
+  user-select: none; background: var(--tinta); border-right: 1px solid #2a2a2a;
   min-width: 36px; overflow: hidden;
 }
 .editor-ta {
-  flex: 1; background: transparent; border: 0; color: #e8f7d8;
+  flex: 1; background: transparent; border: 0; color: #F5F1E4;
   font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.55;
   padding: 12px; min-height: 230px; resize: vertical; outline: none;
-  white-space: pre; overflow: auto; tab-size: 2; caret-color: var(--amarelo);
+  white-space: pre; overflow: auto; tab-size: 2; caret-color: var(--laranja);
 }
-.editor-ta:focus { box-shadow: inset 0 0 0 2px var(--rosa); border-radius: 0 0 8px 0; }
+.editor-ta:focus { box-shadow: inset 0 0 0 2px var(--laranja); }
 
 /* ---------- painéis (preview / terminal / lint) ---------- */
-.painel { border: 2px solid var(--linha); border-radius: 10px; margin-top: 12px; overflow: hidden; background: var(--asfalto); }
+.painel { border: 3px solid var(--tinta); margin-top: 12px; overflow: hidden; background: var(--branco); }
 .painel-titulo {
   font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px;
   text-transform: uppercase; padding: 7px 10px;
-  background: var(--asfalto-2); color: var(--cinza);
-  border-bottom: 2px solid var(--linha);
+  background: var(--tinta); color: var(--branco);
   display: flex; justify-content: space-between; gap: 8px; align-items: center;
 }
+.painel--azul .painel-titulo { background: var(--azul); }
+.painel--erro { border-color: var(--vermelho); }
+.painel--erro .painel-titulo { background: var(--vermelho); }
 .preview-frame { width: 100%; height: 260px; border: 0; background: #fff; display: block; }
 .terminal {
-  background: #050507; font-family: 'JetBrains Mono', monospace;
-  font-size: 12.5px; color: var(--verde); padding: 12px;
+  background: var(--tinta); font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px; color: var(--lima); padding: 12px;
   min-height: 44px; white-space: pre-wrap; word-break: break-word; margin: 0;
+  border-top: 1px solid #2a2a2a;
 }
-.terminal-log { color: #e8f7d8; }
-.terminal-prefixo { color: var(--rosa); }
+.terminal-log { color: #F5F1E4; }
+.terminal-prefixo { color: var(--laranja); }
 .lint-item {
   display: flex; gap: 8px; padding: 10px 12px;
   font-size: 13.5px; line-height: 1.5;
-  border-bottom: 1px dashed var(--linha); align-items: flex-start;
+  border-bottom: 1px dashed #C9C2B0; align-items: flex-start;
 }
 .lint-item:last-child { border-bottom: 0; }
-.lint-erro { color: #ffb1b1; }
-.lint-aviso { color: #ffd9a8; }
-.lint-dica { color: #ffe9a8; }
+.lint-erro { color: #B3261E; }
+.lint-aviso { color: #8A5A00; }
+.lint-dica { color: #4A4400; }
 .lint-emoji { flex-shrink: 0; }
 
 .banner-ok {
-  border: 2px solid var(--verde); background: rgba(61, 220, 132, 0.1);
-  border-radius: 10px; padding: 13px; margin-top: 12px;
-  font-family: 'Archivo Black', sans-serif; color: var(--verde);
+  border: 3px solid var(--tinta); background: var(--lima);
+  box-shadow: 4px 4px 0 var(--tinta);
+  padding: 13px; margin-top: 14px;
+  font-family: 'Archivo Black', sans-serif; color: var(--tinta);
   text-transform: uppercase; text-align: center; font-size: 15px;
   animation: sobe 0.25s ease;
 }
@@ -564,40 +564,46 @@ const CSS = String.raw`
   margin: 14px 0 6px;
 }
 .encaixe-area {
-  min-height: 56px; border: 2px dashed var(--amarelo); border-radius: 10px;
+  min-height: 56px; border: 3px dashed var(--tinta);
   padding: 8px; display: flex; flex-direction: column; gap: 6px;
-  background: rgba(255, 210, 63, 0.04);
+  background: #FFFBEA;
 }
 .encaixe-banco { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .peca {
   text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
-  background: #0b0b11; border: 2px solid var(--linha); color: #e8f7d8;
-  border-radius: 8px; padding: 10px 12px; cursor: pointer;
+  background: var(--tinta); border: 3px solid var(--tinta); color: var(--branco);
+  padding: 10px 12px; cursor: pointer;
   white-space: pre; overflow-x: auto; width: 100%;
-  transition: border-color 0.1s ease, transform 0.08s ease;
+  box-shadow: 3px 3px 0 var(--cinza);
+  transition: border-color 0.1s ease, transform 0.06s ease, box-shadow 0.06s ease;
 }
-.peca:hover { border-color: var(--rosa); }
-.peca:active { transform: scale(0.99); }
-.peca:focus-visible { outline: 3px solid var(--rosa); outline-offset: 2px; }
-.peca--monte { border-color: #4a4a66; background: #101018; }
+.peca:hover { border-color: var(--laranja); }
+.peca:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--cinza); }
+.peca:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.peca--monte { border-color: var(--azul); color: var(--lima); box-shadow: none; }
 .encaixe-vazio { color: var(--cinza); font-size: 12.5px; text-align: center; padding: 8px; }
 
 /* ---------- resultado ---------- */
-.placar { font-family: 'Archivo Black', sans-serif; font-size: 56px; text-align: center; color: var(--amarelo); margin: 8px 0 0; }
+.placar { font-family: 'Archivo Black', sans-serif; font-size: 64px; text-align: center; color: var(--tinta); margin: 8px 0 0; line-height: 1; }
 .placar-sub {
-  text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  letter-spacing: 2px; color: var(--cinza); text-transform: uppercase; margin: 4px 0 0;
+  text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  letter-spacing: 2px; color: var(--tinta); text-transform: uppercase; margin: 8px 0 0; font-weight: 700;
 }
-.trofeu { font-size: 64px; text-align: center; margin: 10px 0 0; }
+.placar-xp {
+  text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  letter-spacing: 2px; text-transform: uppercase; margin: 6px auto 0;
+  background: var(--tinta); color: var(--lima); display: table; padding: 3px 10px;
+}
+.trofeu { font-size: 56px; text-align: center; margin: 10px 0 0; }
 .stack { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 
-.footer-note { text-align: center; font-size: 12px; color: var(--cinza); margin-top: 22px; line-height: 1.5; }
+.footer-note { text-align: center; font-size: 12px; color: var(--cinza); margin-top: 24px; line-height: 1.5; }
 .link-reset {
-  background: none; border: none; color: var(--rosa);
-  font-family: inherit; font-size: 12px; cursor: pointer;
+  background: none; border: none; color: var(--vermelho);
+  font-family: inherit; font-size: 12px; cursor: pointer; font-weight: 700;
   text-decoration: underline; padding: 2px 4px;
 }
-.link-reset:focus-visible { outline: 2px solid var(--rosa); outline-offset: 2px; }
+.link-reset:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .ddc *, .ddc *::before, .ddc *::after { animation: none !important; transition: none !important; }
@@ -612,7 +618,7 @@ async function carregarProgresso() {
     const r = localStorage.getItem(STORAGE_KEY);
     return r ? JSON.parse(r) : null;
   } catch (e) {
-    return null; // chave ainda não existe, segue o baile
+    return null; // chave ainda não existe
   }
 }
 
@@ -620,14 +626,14 @@ async function salvarProgresso(p) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
   } catch (e) {
-    console.error('não rolou salvar:', e);
+    console.error('falha ao salvar:', e);
   }
 }
 
 async function apagarProgresso() {
   try {
     localStorage.removeItem(STORAGE_KEY);
-  } catch (e) { /* já era */ }
+  } catch (e) { /* nada a apagar */ }
 }
 
 function calcXP(scores) {
@@ -673,7 +679,7 @@ function PainelLint({ itens }) {
   const icone = { erro: '🚨', aviso: '⚠️', dica: '💡' };
   return (
     <div className="painel">
-      <div className="painel-titulo"><span>Lint parceiro</span><span>{itens.length} ponto(s)</span></div>
+      <div className="painel-titulo"><span>Lint amigável</span><span>{itens.length} ponto(s)</span></div>
       {itens.map((it, i) => (
         <div key={i} className={'lint-item lint-' + it.nivel}>
           <span className="lint-emoji">{icone[it.nivel] || '💡'}</span>
@@ -759,7 +765,7 @@ function DesafioQuiz({ d, onResolvido }) {
       </div>
       {respondeu && (
         <div className={'feedback ' + (acertou ? 'feedback--ok' : 'feedback--ruim')}>
-          <p className="feedback-titulo">{acertou ? 'Aí sim, moleque! ✅' : 'Ih, vacilou... ❌'}</p>
+          <p className="feedback-titulo">{acertou ? 'Boa, acertou! ✅' : 'Não foi dessa vez ❌'}</p>
           <p className="feedback-txt">{d.explain}</p>
         </div>
       )}
@@ -813,7 +819,7 @@ function DesafioEncaixe({ d, onResolvido }) {
         ok: false,
         msg: certas === 0
           ? 'A primeira peça já não encaixa aí. Pensa: o que precisa vir ANTES de tudo nesse código?'
-          : 'As ' + certas + ' primeira(s) tão certinhas 👊 — é a peça ' + (certas + 1) + ' que não encaixa nessa posição. Toca nela pra devolver e testa outra.',
+          : 'As ' + certas + ' primeira(s) estão certas — é a peça ' + (certas + 1) + ' que não encaixa nessa posição. Toca nela pra devolver e testa outra.',
       });
     }
   }
@@ -849,14 +855,14 @@ function DesafioEncaixe({ d, onResolvido }) {
       )}
       {res && (
         <div className={'feedback ' + (res.ok ? 'feedback--ok' : 'feedback--ruim')}>
-          <p className="feedback-titulo">{res.ok ? (usouGabarito ? 'Montado com colinha 😅' : 'Encaixou perfeito! 🧩') : 'Quase lá...'}</p>
+          <p className="feedback-titulo">{res.ok ? (usouGabarito ? 'Montado com o gabarito' : 'Encaixou perfeito! 🧩') : 'Quase lá...'}</p>
           <p className="feedback-txt">{res.msg}</p>
         </div>
       )}
       <div className="toolbar">
         {!montado && <button className="btn btn-amarelo" onClick={conferir}>Conferir encaixe</button>}
         {!montado && erros >= 2 && (
-          <button className="btn btn-fantasma" onClick={verGabarito}>😮‍💨 Mostra a ordem certa</button>
+          <button className="btn btn-fantasma" onClick={verGabarito}>Mostrar a ordem certa</button>
         )}
         {montado && (
           <button className="btn btn-verde" onClick={() => onResolvido(!usouGabarito)}>
@@ -995,7 +1001,7 @@ function DesafioCode({ d, onResolvido }) {
           </button>
         )}
         {!completo && tentativas >= 2 && (
-          <button className="btn btn-fantasma" onClick={() => setVerGab(v => !v)}>😮‍💨 Tô travado</button>
+          <button className="btn btn-fantasma" onClick={() => setVerGab(v => !v)}>Estou travado</button>
         )}
       </div>
 
@@ -1007,7 +1013,7 @@ function DesafioCode({ d, onResolvido }) {
 
       {verGab && (
         <div className="painel">
-          <div className="painel-titulo"><span>Gabarito</span><span>sem crise, é aprendizado</span></div>
+          <div className="painel-titulo"><span>Gabarito</span><span>faz parte do aprendizado</span></div>
           <code className="code" style={{ margin: 0, borderRadius: 0, borderLeft: 0, border: 0 }}>{d.gabarito}</code>
           <div style={{ padding: 10 }}>
             <button className="btn btn-fantasma" onClick={usarGabarito}>Colar no editor (não pontua, mas ensina)</button>
@@ -1019,7 +1025,7 @@ function DesafioCode({ d, onResolvido }) {
 
       {erros.length > 0 && (
         <div className="painel">
-          <div className="painel-titulo"><span>Deu ruim no run</span><span>tradução amigável</span></div>
+          <div className="painel-titulo"><span>Erro na execução</span><span>tradução amigável</span></div>
           {erros.map((e, i) => (
             <div key={i} className="lint-item lint-erro"><span className="lint-emoji">🚨</span><span>{e}</span></div>
           ))}
@@ -1053,7 +1059,7 @@ function DesafioCode({ d, onResolvido }) {
         <div className="painel">
           <div className="painel-titulo">
             <span>Terminal</span>
-            <span>simulado* — Java precisa da JVM, não roda no navegador 😅</span>
+            <span>simulado* — Java precisa da JVM, não roda no navegador</span>
           </div>
           <pre className="terminal"><span className="terminal-prefixo">$ javac Main.java && java Main{'\n'}</span>{d.saida}</pre>
         </div>
@@ -1061,7 +1067,7 @@ function DesafioCode({ d, onResolvido }) {
 
       {completo && (
         <>
-          <div className="banner-ok">{ehJava ? 'Compilou limpinho! ✓' : 'Funcionou, olha na tela! 🎉'}</div>
+          <div className="banner-ok">{ehJava ? 'Compilou sem erros! ✓' : 'Funcionou, confere na tela! 🎉'}</div>
           <div className="stack">
             <button className="btn btn-verde" onClick={() => onResolvido(!usouGabarito)}>
               {usouGabarito ? 'Seguir (sem pontuar)' : 'Fechar desafio ✓'}
@@ -1089,7 +1095,7 @@ function TelaHome({ temProgresso, onStart }) {
           <strong>Faria Lima</strong>. Em cada parada: conceito rápido e desafios de
           três tipos — <strong>quiz</strong>, <strong>quebra-cabeça de encaixar código</strong> e{' '}
           <strong>código de verdade</strong>, que você digita, roda e vê acontecendo na tela,
-          com um lint parceiro que explica o erro na moral (bem mais gente boa que a IDE).
+          com um lint amigável que explica o erro em bom português (bem mais claro que o da IDE).
           Acertou 3 de 5, libera o próximo ponto.
         </p>
       </div>
@@ -1109,7 +1115,7 @@ function TelaTrilha({ progresso, onAbrir, onReset }) {
   const zerou = completos === MODULES.length;
   return (
     <div>
-      <Letreiro mini rota="Trilha da linha" destino="Escolhe teu ponto" />
+      <Letreiro mini rota="Trilha da linha" destino="Escolhe seu ponto" />
       <XPBar xp={xp} />
       <div className="trilha">
         {MODULES.map((m, i) => {
@@ -1141,7 +1147,7 @@ function TelaTrilha({ progresso, onAbrir, onReset }) {
           <p className="card-titulo" style={{ textAlign: 'center', color: 'var(--verde)' }}>Zerou a linha!</p>
           <p className="card-txt" style={{ textAlign: 'center' }}>
             Do Terminal Varginha até a Faria Lima: <strong>{getLevel(xp).nome}</strong> com {xp} XP.
-            Agora é abrir o VS Code e o IntelliJ e construir o app de verdade. Tamo junto. 🤝
+            Agora é abrir o VS Code e o IntelliJ e construir o app de verdade. 🚀
           </p>
         </div>
       )}
@@ -1171,7 +1177,7 @@ function TelaLicao({ modulo, onDesafio, onVoltar }) {
           <button className="btn btn-amarelo" onClick={() => setI(i + 1)}>Próximo conceito →</button>
         )}
         {ultima && (
-          <button className="btn btn-rosa" onClick={onDesafio}>Partiu desafios 🔥</button>
+          <button className="btn btn-rosa" onClick={onDesafio}>Começar os desafios 🔥</button>
         )}
         {i > 0 && (
           <button className="btn btn-fantasma" onClick={() => setI(i - 1)}>← Voltar um conceito</button>
@@ -1223,10 +1229,10 @@ function TelaResultado({ modulo, score, xpGanho, ehUltimo, onRefazer, onTrilha }
   const total = modulo.desafios.length;
   const passou = score >= 3;
   let msg;
-  if (score === total) msg = 'GABARITOU, MONSTRO! 💛';
+  if (score === total) msg = 'GABARITOU! 💛';
   else if (score >= 4) msg = 'Mandou muito bem!';
-  else if (score >= 3) msg = 'Passou! Tá no caminho.';
-  else msg = 'Foi por pouco... bora revisar e voltar.';
+  else if (score >= 3) msg = 'Passou! Está no caminho.';
+  else msg = 'Foi por pouco... revisa e tenta de novo.';
   return (
     <div>
       <Letreiro mini rota={modulo.tag + ' · resultado'} destino={modulo.ponto} />
@@ -1236,13 +1242,13 @@ function TelaResultado({ modulo, score, xpGanho, ehUltimo, onRefazer, onTrilha }
         {xpGanho > 0 && <p className="placar-sub" style={{ color: 'var(--amarelo)' }}>+{xpGanho} XP</p>}
         {!passou && (
           <p className="card-txt" style={{ textAlign: 'center', marginTop: 12 }}>
-            Precisa de 3 acertos pra liberar o próximo ponto. Revisa os conceitos e cola de novo —
+            Precisa de 3 acertos pra liberar o próximo ponto. Revisa os conceitos e tenta de novo —
             ninguém aprende de primeira mesmo. (Desafio fechado com gabarito não pontua, mas ensina igual.)
           </p>
         )}
         {passou && ehUltimo && (
           <p className="card-txt" style={{ textAlign: 'center', marginTop: 12 }}>
-            Último ponto concluído! Volta pra trilha pra ver teu troféu. 🏆
+            Último ponto concluído! Volta pra trilha pra ver seu troféu. 🏆
           </p>
         )}
       </div>
@@ -1306,7 +1312,7 @@ export default function DevDoCorre() {
       <style>{CSS}</style>
       <div className="ddc-shell">
         {tela === 'carregando' && (
-          <Letreiro rota="AGUARDA..." destino="Chamando o busão" sub="carregando seu progresso" />
+          <Letreiro rota="AGUARDE..." destino="Chamando o busão" sub="carregando seu progresso" />
         )}
         {tela === 'home' && (
           <TelaHome temProgresso={temProgresso} onStart={() => setTela('trilha')} />
@@ -1355,18 +1361,18 @@ const MODULES = [
     desc: 'Componente, JSX, props e state. A base de tudo.',
     lessons: [
       {
-        t: 'O que é React, na moral?',
+        t: 'O que é React, afinal?',
         txt: 'React é uma biblioteca JavaScript pra montar interface. A ideia central: tudo é COMPONENTE — uma função que recebe dados e devolve JSX (aquela "marcação" parecida com HTML). Você monta a tela juntando componente igual peça de Lego.',
-        code: 'function Salve() {\n  return <h1>Salve, quebrada!</h1>;\n}',
+        code: 'function Salve() {\n  return <h1>Salve, São Paulo!</h1>;\n}',
       },
       {
-        t: 'Props: passando o bagulho pra dentro',
+        t: 'Props: passando dados pra dentro',
         txt: 'Props são os parâmetros do componente. O pai manda, o filho recebe. Props são SOMENTE LEITURA — o filho não altera o que recebeu.',
         code: 'function Card({ nome }) {\n  return <p>E aí, {nome}!</p>;\n}\n\n<Card nome="Edu" />',
       },
       {
         t: 'State: a memória do componente',
-        txt: 'useState guarda um valor que muda com o tempo (contador, texto de input, se o modal tá aberto...). Quando você chama a função set, o React re-renderiza o componente com o valor novo.',
+        txt: 'useState guarda um valor que muda com o tempo (contador, texto de input, se o modal está aberto...). Quando você chama a função set, o React re-renderiza o componente com o valor novo.',
         code: 'const [likes, setLikes] = useState(0);\n\n<button onClick={() => setLikes(likes + 1)}>\n  Curtir ({likes})\n</button>',
       },
     ],
@@ -1376,11 +1382,11 @@ const MODULES = [
         q: 'Como interpola uma variável dentro do JSX?',
         opts: ['<p>{{nome}}</p>', '<p>${nome}</p>', '<p>{nome}</p>', '<p><%= nome %></p>'],
         correct: 2,
-        explain: 'Chave simples { }. Chave dupla é papo de Vue/Angular, e ${ } é template string do JS puro — dentro do JSX não rola.',
+        explain: 'Chave simples { }. Chave dupla é coisa de Vue/Angular, e ${ } é template string do JS puro — dentro do JSX não funciona.',
       },
       {
         tipo: 'encaixe',
-        enunciado: 'Monta o componente Perfil que recebe a prop nome e dá um salve:',
+        enunciado: 'Monta o componente Perfil que recebe a prop nome e mostra uma saudação:',
         pecas: [
           'function Perfil({ nome }) {',
           '  return (',
@@ -1394,7 +1400,7 @@ const MODULES = [
         tipo: 'code',
         lang: 'jsx',
         arquivo: 'App.jsx',
-        enunciado: 'Teu primeiro componente rodando DE VERDADE:',
+        enunciado: 'Seu primeiro componente rodando DE VERDADE:',
         missao: 'fazer aparecer na tela um <h1> escrito Salve, Edu!',
         starter: 'function App() {\n  // devolve um <h1> com o texto: Salve, Edu!\n\n}',
         esperado: ['Salve, Edu!'],
@@ -1410,7 +1416,7 @@ const MODULES = [
       },
       {
         tipo: 'quiz',
-        q: 'Por que NÃO pode alterar o state na mão, tipo likes = 5?',
+        q: 'Por que NÃO pode alterar o state na mão, como likes = 5?',
         opts: [
           'Porque dá erro de sintaxe no JS',
           'Porque o React não fica sabendo e a tela não atualiza',
@@ -1425,7 +1431,7 @@ const MODULES = [
         lang: 'jsx',
         arquivo: 'App.jsx',
         enunciado: 'Botão de curtir com state — o clássico:',
-        missao: 'um botão Curtir (0) que vira Curtir (1), Curtir (2)... a cada clique. O useState já tá disponível, nem precisa importar.',
+        missao: 'um botão Curtir (0) que vira Curtir (1), Curtir (2)... a cada clique. O useState já está disponível, nem precisa importar.',
         testa: '👆 clica no botão do preview!',
         starter: 'function App() {\n  // 1) cria o state:\n  //    const [likes, setLikes] = useState(0)\n  // 2) no clique do botão, soma 1\n\n  return (\n    <button>\n      Curtir (0)\n    </button>\n  );\n}',
         esperado: ['Curtir (0)', 'Curtir (1)'],
@@ -1445,7 +1451,7 @@ const MODULES = [
   },
   {
     id: 'react-inter',
-    nome: 'React: pegando a manha',
+    nome: 'React: pegando o ritmo',
     ponto: 'Terminal Grajaú',
     tag: 'PONTO 02',
     desc: 'useEffect, listas com map, condicional e input controlado.',
@@ -1511,7 +1517,7 @@ const MODULES = [
       {
         tipo: 'quiz',
         q: 'Quando esse parágrafo aparece na tela?',
-        code: '{erro && <p>Deu ruim!</p>}',
+        code: '{erro && <p>Falha ao carregar!</p>}',
         opts: ['Sempre', 'Quando erro for truthy', 'Quando erro for false', 'Nunca, a sintaxe é inválida'],
         correct: 1,
         explain: 'O && só renderiza o lado direito se o esquerdo for truthy. Atalho clássico de condicional no JSX.',
@@ -1521,22 +1527,22 @@ const MODULES = [
         lang: 'jsx',
         arquivo: 'App.jsx',
         enunciado: 'Renderização condicional na prática:',
-        missao: 'se online for true, mostrar Tá on 🟢 — senão, Caiu a net 🔴. Testa trocando o valor de online depois!',
-        starter: "function App() {\n  const online = true;\n\n  // mostra <p>Tá on 🟢</p> se online,\n  // senão <p>Caiu a net 🔴</p>\n  return (\n    <div>\n\n    </div>\n  );\n}",
-        esperado: ['Tá on'],
+        missao: 'se online for true, mostrar Online 🟢 — senão, Sem conexão 🔴. Testa trocando o valor de online depois!',
+        starter: "function App() {\n  const online = true;\n\n  // mostra <p>Online 🟢</p> se online,\n  // senão <p>Sem conexão 🔴</p>\n  return (\n    <div>\n\n    </div>\n  );\n}",
+        esperado: ['Online'],
         dicasAuto: [
           { re: '\\?|&&', falta: 'Usa ternário {online ? isso : aquilo} ou o operador && dentro do JSX.' },
         ],
         dicas: [
-          'Dentro da <div>: {online ? <p>Tá on 🟢</p> : <p>Caiu a net 🔴</p>}',
+          'Dentro da <div>: {online ? <p>Online 🟢</p> : <p>Sem conexão 🔴</p>}',
         ],
-        gabarito: "function App() {\n  const online = true;\n\n  return (\n    <div>\n      {online ? <p>Tá on 🟢</p> : <p>Caiu a net 🔴</p>}\n    </div>\n  );\n}",
+        gabarito: "function App() {\n  const online = true;\n\n  return (\n    <div>\n      {online ? <p>Online 🟢</p> : <p>Sem conexão 🔴</p>}\n    </div>\n  );\n}",
       },
     ],
   },
   {
     id: 'react-avancado',
-    nome: 'React: modo brabo',
+    nome: 'React: modo avançado',
     ponto: 'Cidade Dutra',
     tag: 'PONTO 03',
     desc: 'Custom hooks, Context, memorização e performance.',
@@ -1548,7 +1554,7 @@ const MODULES = [
       },
       {
         t: 'Context: chega de prop drilling',
-        txt: 'Quando um dado precisa descer por vários níveis de componente (tema, usuário logado), passar prop por prop vira sofrência. Context deixa qualquer descendente ler o valor direto.',
+        txt: 'Quando um dado precisa descer por vários níveis de componente (tema, usuário logado), passar prop por prop fica trabalhoso. Context deixa qualquer descendente ler o valor direto.',
         code: 'const TemaContext = createContext();\n\n// lá embaixo na árvore:\nconst tema = useContext(TemaContext);',
       },
       {
@@ -1575,7 +1581,7 @@ const MODULES = [
           '  return [on, toggle];',
           '}',
         ],
-        explain: 'Primeiro o state, depois a função que inverte, e o hook devolve os dois num array — igualzinho o useState faz.',
+        explain: 'Primeiro o state, depois a função que inverte, e o hook devolve os dois num array — assim como o useState faz.',
       },
       {
         tipo: 'quiz',
@@ -1593,8 +1599,8 @@ const MODULES = [
         tipo: 'code',
         lang: 'jsx',
         arquivo: 'useContador.jsx',
-        enunciado: 'Cria teu primeiro custom hook:',
-        missao: 'completar o useContador pra devolver [n, incrementa]. O App já tá pronto usando ele — se o hook funcionar, o botão conta.',
+        enunciado: 'Cria seu primeiro custom hook:',
+        missao: 'completar o useContador pra devolver [n, incrementa]. O App já está pronto usando ele — se o hook funcionar, o botão conta.',
         testa: '👆 clica no botão do preview!',
         starter: '// complete o hook: devolve [n, incrementa]\nfunction useContador(inicial) {\n\n}\n\nfunction App() {\n  const [n, incrementa] = useContador(0);\n  return (\n    <button onClick={incrementa}>Cliques: {n}</button>\n  );\n}',
         esperado: ['Cliques: 0', 'Cliques: 1'],
@@ -1637,7 +1643,7 @@ const MODULES = [
       },
       {
         t: 'Tudo vive dentro de classe',
-        txt: 'Java é orientado a objeto até o talo: método não existe solto, sempre dentro de uma classe. Assinatura de método = visibilidade + retorno + nome + parâmetros.',
+        txt: 'Java é orientado a objeto de ponta a ponta: método não existe solto, sempre dentro de uma classe. Assinatura de método = visibilidade + retorno + nome + parâmetros.',
         code: 'public class Calc {\n  public int somar(int a, int b) {\n    return a + b;\n  }\n}',
       },
       {
@@ -1658,13 +1664,13 @@ const MODULES = [
         tipo: 'code',
         lang: 'java',
         arquivo: 'Main.java',
-        enunciado: 'Teu primeiro Java: variáveis + println.',
-        contexto: 'Aqui o Java não roda de verdade (ele precisa da JVM, não do navegador) — mas o lint confere teu código igual um compilador gente boa.',
+        enunciado: 'Seu primeiro Java: variáveis + println.',
+        contexto: 'Aqui o Java não roda de verdade (ele precisa da JVM, não do navegador) — mas o lint confere seu código como um compilador amigável.',
         missao: 'declarar String nome = "Edu" e int idade = 25, e imprimir: Edu tem 25 anos',
         starter: 'public class Main {\n  public static void main(String[] args) {\n    // 1) String nome = "Edu";\n    // 2) int idade = 25;\n    // 3) imprime: Edu tem 25 anos\n\n  }\n}',
         regras: [
           { re: 'String\\s+nome\\s*=\\s*"', label: 'String nome', falta: 'Falta declarar a String nome = "Edu"; — com aspas DUPLAS: em Java, aspas simples é só pra char.' },
-          { re: 'int\\s+idade\\s*=\\s*\\d', label: 'int idade', falta: 'Falta o int idade = 25; — número vai sem aspas, que número é número.' },
+          { re: 'int\\s+idade\\s*=\\s*\\d', label: 'int idade', falta: 'Falta o int idade = 25; — número vai sem aspas.' },
           { re: 'System\\.out\\.println\\(', label: 'println', falta: 'Usa System.out.println(...) pra imprimir no console.' },
           { re: 'nome\\s*\\+|\\+\\s*nome', label: 'concatenar com +', falta: 'Junta as partes com + : nome + " tem " + idade + " anos"' },
         ],
@@ -1690,7 +1696,7 @@ const MODULES = [
         missao: 'usar um for de 1 até 5 acumulando na variável soma. Saída esperada: 15',
         starter: 'public class Main {\n  public static void main(String[] args) {\n    int soma = 0;\n\n    // for de 1 até 5, acumulando em soma\n\n    System.out.println(soma);\n  }\n}',
         regras: [
-          { re: 'for\\s*\\(', label: 'for', falta: 'Cadê o for? Estrutura: for (int i = 1; i <= 5; i++) { ... }' },
+          { re: 'for\\s*\\(', label: 'for', falta: 'Falta o for. Estrutura: for (int i = 1; i <= 5; i++) { ... }' },
           { re: 'i\\s*<=\\s*5|i\\s*<\\s*6', label: 'vai até 5', falta: 'O loop precisa ir até o 5: condição i <= 5 (ou i < 6).' },
           { re: 'soma\\s*\\+=|soma\\s*=\\s*soma\\s*\\+', label: 'soma acumula', falta: 'Dentro do loop, acumula: soma += i; (que é o mesmo que soma = soma + i).' },
         ],
@@ -1717,7 +1723,7 @@ const MODULES = [
   },
   {
     id: 'java-poo',
-    nome: 'Java: POO na veia',
+    nome: 'Java: POO na prática',
     ponto: 'Socorro',
     tag: 'PONTO 05',
     desc: 'Classe, objeto, herança, interface e polimorfismo.',
@@ -1728,7 +1734,7 @@ const MODULES = [
         code: 'public class Carro {\n  private String modelo;\n\n  public Carro(String modelo) {\n    this.modelo = modelo;\n  }\n}\n\nCarro c = new Carro("Gol bolinha");',
       },
       {
-        t: 'Encapsulamento: cada um no seu quadrado',
+        t: 'Encapsulamento: cada coisa no seu lugar',
         txt: 'Atributo fica private e o mundo externo só acessa pelos métodos que VOCÊ liberou (getters/setters ou métodos de negócio). Isso protege o estado interno de ser bagunçado por fora.',
         code: 'public class Conta {\n  private double saldo;\n\n  public void depositar(double valor) {\n    if (valor > 0) saldo += valor;\n  }\n}',
       },
@@ -1749,7 +1755,7 @@ const MODULES = [
           'Usar static em tudo',
         ],
         correct: 1,
-        explain: 'A classe protege o próprio estado. Quem tá de fora interage pelos métodos liberados — e a classe valida o que entra.',
+        explain: 'A classe protege o próprio estado. Quem está de fora interage pelos métodos liberados — e a classe valida o que entra.',
       },
       {
         tipo: 'encaixe',
@@ -1774,7 +1780,7 @@ const MODULES = [
         regras: [
           { re: 'private\\s+double\\s+saldo', label: 'private saldo', falta: 'O saldo tem que ser private double saldo; — encapsulado, ninguém mexe direto de fora.' },
           { re: 'public\\s+void\\s+depositar\\s*\\(\\s*double', label: 'depositar()', falta: 'Declara o método: public void depositar(double valor) { ... }' },
-          { re: 'if\\s*\\(', label: 'valida com if', falta: 'Protege com if (valor > 0) — conta não aceita depósito negativo, né.' },
+          { re: 'if\\s*\\(', label: 'valida com if', falta: 'Protege com if (valor > 0) — conta não aceita depósito negativo.' },
           { re: 'saldo\\s*\\+=|saldo\\s*=\\s*saldo\\s*\\+', label: 'soma no saldo', falta: 'Dentro do if, soma: saldo += valor;' },
         ],
         saida: 'new Conta() → depositar(150.0) → saldo interno: 150.0 ✓',
@@ -1824,7 +1830,7 @@ const MODULES = [
         code: '@RestController\n@RequestMapping("/api/produtos")\npublic class ProdutoController {\n\n  @GetMapping\n  public List<Produto> listar() { ... }\n\n  @PostMapping\n  public Produto criar(@RequestBody Produto p) { ... }\n}',
       },
       {
-        t: 'Camadas: cada um faz um corre',
+        t: 'Camadas: cada uma com sua função',
         txt: 'Controller recebe a requisição e devolve resposta. Service guarda a regra de negócio. Repository conversa com o banco. Separar assim deixa o código testável e organizado — igual você já viu no vt_wf, só que com cada coisa no seu lugar.',
         code: '// Controller  →  Service  →  Repository  →  Banco\n\npublic interface ProdutoRepository\n    extends JpaRepository<Produto, Long> { }',
       },
@@ -1860,7 +1866,7 @@ const MODULES = [
           '  }',
           '}',
         ],
-        explain: 'Annotations em cima da classe primeiro, depois a classe, o @GetMapping em cima do método, e o método delegando pro service. Cada camada no seu quadrado.',
+        explain: 'Annotations em cima da classe primeiro, depois a classe, o @GetMapping em cima do método, e o método delegando pro service. Cada camada no seu lugar.',
       },
       {
         tipo: 'code',
@@ -1921,7 +1927,7 @@ const MODULES = [
         code: "useEffect(() => {\n  fetch('http://localhost:8080/api/produtos')\n    .then(res => res.json())\n    .then(setProdutos)\n    .catch(err => setErro(err.message));\n}, []);",
       },
       {
-        t: 'CORS: o segurança da balada',
+        t: 'CORS: o segurança na porta',
         txt: 'O navegador bloqueia requisição de uma origem (localhost:5173) pra outra (localhost:8080) se o backend não autorizar. Resolve liberando a origem no Spring — @CrossOrigin no controller ou uma config global de CORS.',
         code: '@CrossOrigin(origins = "http://localhost:5173")\n@RestController\npublic class ProdutoController { ... }',
       },
@@ -1944,11 +1950,11 @@ const MODULES = [
         lang: 'jsx',
         arquivo: 'App.jsx',
         enunciado: 'BOSS: consome a "API" e lista os produtos na tela.',
-        contexto: 'A função buscarProdutos() já existe e devolve uma Promise — igualzinho um fetch de verdade, só que sem backend. Teu trampo é o useEffect.',
+        contexto: 'A função buscarProdutos() já existe e devolve uma Promise — igual um fetch de verdade, só que sem backend. Sua parte é o useEffect.',
         missao: 'buscar os dados na montagem e jogar no state — os 3 produtos têm que aparecer na lista.',
         starter: '// buscarProdutos() já existe e devolve uma Promise\n// (igual um fetch, só que sem backend)\n\nfunction App() {\n  const [produtos, setProdutos] = useState([]);\n\n  // useEffect: chama buscarProdutos()\n  // e joga o resultado no state\n\n  return (\n    <ul>\n      {produtos.map(p => <li key={p.id}>{p.nome}</li>)}\n    </ul>\n  );\n}',
-        preambulo: "function buscarProdutos() {\n  return new Promise(resolve => setTimeout(() => resolve([\n    { id: 1, nome: 'Fone brabo' },\n    { id: 2, nome: 'Teclado gamer' },\n    { id: 3, nome: 'Mouse do corre' }\n  ]), 700));\n}",
-        esperado: ['Fone brabo', 'Teclado gamer', 'Mouse do corre'],
+        preambulo: "function buscarProdutos() {\n  return new Promise(resolve => setTimeout(() => resolve([\n    { id: 1, nome: 'Fone bluetooth' },\n    { id: 2, nome: 'Teclado gamer' },\n    { id: 3, nome: 'Mouse sem fio' }\n  ]), 700));\n}",
+        esperado: ['Fone bluetooth', 'Teclado gamer', 'Mouse sem fio'],
         dicasAuto: [
           { re: 'useEffect', falta: 'A busca vai dentro de um useEffect(() => { ... }, []) — efeito de montagem.' },
           { re: 'buscarProdutos\\(\\)', falta: 'Chama a função: buscarProdutos().then(...)' },
