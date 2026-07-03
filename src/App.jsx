@@ -351,9 +351,20 @@ const CSS = String.raw`
   --lint-erro: #B3261E;
   --lint-aviso: #8A5A00;
   --lint-dica: #4A4400;
+  --textura-linha: rgba(13, 13, 13, 0.12);
+  --textura-ponto: rgba(13, 13, 13, 0.13);
+  --textura-luz: rgba(255, 255, 255, 0.38);
 
   min-height: 100vh;
-  background: var(--papel);
+  background:
+    radial-gradient(circle at 12% 18%, var(--textura-luz) 0 2px, transparent 2.5px),
+    radial-gradient(circle at 2px 2px, var(--textura-ponto) 1.1px, transparent 1.4px),
+    repeating-linear-gradient(90deg, transparent 0 62px, var(--textura-linha) 62px 65px),
+    repeating-linear-gradient(0deg, transparent 0 62px, var(--textura-linha) 62px 65px),
+    var(--papel);
+  background-size: 180px 180px, 18px 18px, 124px 124px, 124px 124px, auto;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+  background-attachment: fixed;
   color: var(--tinta);
   font-family: 'Space Grotesk', system-ui, sans-serif;
   display: flex;
@@ -714,6 +725,9 @@ const CSS = String.raw`
   --lint-erro: #FF9B90;
   --lint-aviso: #FFC46B;
   --lint-dica: #E5DC9A;
+  --textura-linha: rgba(242, 239, 228, 0.12);
+  --textura-ponto: rgba(242, 239, 228, 0.13);
+  --textura-luz: rgba(255, 255, 255, 0.05);
 }
 
 /* Vapor — rosa/roxo/menta */
@@ -730,6 +744,9 @@ const CSS = String.raw`
   --cinza: #8A7A8F;
   --amarelo-claro: #FFEFC2;
   --creme: #FFF5FA;
+  --textura-linha: rgba(35, 16, 46, 0.11);
+  --textura-ponto: rgba(35, 16, 46, 0.12);
+  --textura-luz: rgba(255, 255, 255, 0.44);
 }
 
 /* Táxi — amarelo/preto */
@@ -746,6 +763,9 @@ const CSS = String.raw`
   --cinza: #6B6659;
   --amarelo-claro: #FFF3B0;
   --creme: #FFFBEA;
+  --textura-linha: rgba(13, 13, 13, 0.14);
+  --textura-ponto: rgba(13, 13, 13, 0.12);
+  --textura-luz: rgba(255, 255, 255, 0.34);
 }
 
 /* ---------- animações ---------- */
