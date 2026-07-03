@@ -3,17 +3,21 @@ import { motion, AnimatePresence, MotionConfig, LayoutGroup } from 'framer-motio
 import confetti from 'canvas-confetti';
 
 /* =====================================================================
-   DEV DO CORRE v2 — do extremo sul até a Faria Lima
-   Agora com 3 tipos de desafio:
+   DEV DO CORRE v3 — do extremo sul até a Faria Lima
+   Agora com DUAS linhas de busão (dois cursos):
+   · LINHA 5X-SUL — React + Java (fullstack)
+   · LINHA 6X-SUL — HTML + CSS + JS do zero ao avançado + mini TypeScript
+   E 3 tipos de desafio:
    · QUIZ     — múltipla escolha
    · ENCAIXE  — quebra-cabeça: monta o código peça por peça
    · CÓDIGO   — digita de verdade, roda, vê na tela, com lint amigável
-   React roda AO VIVO num sandbox. Java é validado com lint amigável
-   (a saída é simulada — Java precisa da JVM, não roda no navegador).
+   React, HTML, CSS, JS e TS rodam AO VIVO num sandbox. Java é validado
+   com lint amigável (a saída é simulada — Java precisa da JVM).
    ===================================================================== */
 
 const STORAGE_KEY = 'dev_do_corre_v1';
 const TEMA_KEY = 'dev_do_corre_tema_v1';
+const CURSO_KEY = 'dev_do_corre_curso_v1';
 
 const TEMAS = [
   { id: 'padrao', nome: '5X-Sul (claro)', cor: '#FF4D00', papel: '#EFE9DC' },
@@ -247,6 +251,61 @@ function lintJSX(codigo) {
   return avisos;
 }
 
+// Erros clássicos de quem está começando no HTML.
+function lintHTML(codigo) {
+  const avisos = [];
+  const semComentario = codigo.replace(/<!--[\s\S]*?-->/g, '');
+  const VAZIAS = ['img', 'br', 'hr', 'input', 'meta', 'link', 'source'];
+  const PARES = [
+    'main', 'header', 'footer', 'nav', 'section', 'article', 'div', 'span',
+    'p', 'a', 'button', 'form', 'label', 'select', 'option', 'textarea',
+    'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'strong', 'em', 'style',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  ];
+  for (const tag of PARES) {
+    const abre = (semComentario.match(new RegExp('<' + tag + '(\\s[^>]*)?>', 'gi')) || []).length;
+    const fecha = (semComentario.match(new RegExp('</' + tag + '\\s*>', 'gi')) || []).length;
+    if (abre > fecha) {
+      avisos.push({ nivel: 'erro', msg: 'A tag <' + tag + '> abriu ' + abre + 'x mas só fechou ' + fecha + 'x. Toda <' + tag + '> precisa do par </' + tag + '>.' });
+    } else if (fecha > abre) {
+      avisos.push({ nivel: 'erro', msg: 'Tem um </' + tag + '> sobrando — fechou ' + fecha + 'x mas só abriu ' + abre + 'x.' });
+    }
+  }
+  if (/<image[\s>]/i.test(semComentario)) {
+    avisos.push({ nivel: 'erro', msg: 'A tag de imagem é <img>, não <image>. E ela é vazia — não precisa fechar.' });
+  }
+  for (const tag of VAZIAS) {
+    if (new RegExp('</' + tag + '\\s*>', 'i').test(semComentario)) {
+      avisos.push({ nivel: 'aviso', msg: '<' + tag + '> é uma tag vazia — não existe </' + tag + '>. Escreve só <' + tag + '> (ou <' + tag + ' />).' });
+    }
+  }
+  return avisos;
+}
+
+// Deslizes clássicos de JS/TS puro.
+function lintJS(codigo) {
+  const avisos = [];
+  const linhas = codigo.split('\n');
+  linhas.forEach((l, idx) => {
+    const n = idx + 1;
+    const t = l.trim();
+    if (!t || t.startsWith('//')) return;
+    if (/\bconsole\.(Log|LOG)\b/.test(l)) {
+      avisos.push({ nivel: 'erro', msg: 'Linha ' + n + ': é console.log, tudo minúsculo — JavaScript diferencia maiúscula de minúscula.' });
+    }
+    if (/\bConsole\.log/.test(l)) {
+      avisos.push({ nivel: 'erro', msg: 'Linha ' + n + ': console começa com c minúsculo.' });
+    }
+    if (/\bdocument\.(querySelektor|querySeletor|queryselector)\b/i.test(l) && !/querySelector(All)?\b/.test(l)) {
+      avisos.push({ nivel: 'erro', msg: 'Linha ' + n + ': o método é querySelector — com S maiúsculo e escrito assim mesmo.' });
+    }
+    if (/if\s*\([^)]*[^=!<>]=(?![=>])/.test(l)) {
+      avisos.push({ nivel: 'aviso', msg: 'Linha ' + n + ': dentro do if tem um = sozinho — isso ATRIBUI valor em vez de comparar. Pra comparar usa === .' });
+    }
+  });
+  return avisos;
+}
+
 // Traduz o "erro de IDE" pro português do dia a dia.
 function traduzErro(msg) {
   msg = String(msg || '');
@@ -324,6 +383,50 @@ function montaSrcDoc(codigo, preambulo) {
     '    ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));',
     '  }catch(e){parent.postMessage({ddc:1,tipo:"erro",msg:String((e&&e.message)||e)},"*");}',
     '})();',
+    '</' + 'script></body></html>',
+  ].join('\n');
+}
+
+/* ---------- SANDBOX 2: HTML / JS / TS puro num iframe ---------- */
+
+const REPORTER_WEB = [
+  '<script>',
+  'window.onerror=function(m){parent.postMessage({ddc:1,tipo:"erro",msg:String(m)},"*");return true;};',
+  'var _log=console.log;var _buf=[];',
+  'function _tela(){var t=(document.body?document.body.innerText:"")+"\\n"+_buf.join("\\n");parent.postMessage({ddc:1,tipo:"tela",texto:t},"*");}',
+  'console.log=function(){var a=Array.prototype.slice.call(arguments).map(function(x){try{return typeof x==="object"?JSON.stringify(x):String(x)}catch(e){return String(x)}});var s=a.join(" ");_buf.push(s);parent.postMessage({ddc:1,tipo:"log",texto:s},"*");setTimeout(_tela,30);_log.apply(console,arguments);};',
+  'window.addEventListener("load",function(){',
+  '  try{new MutationObserver(function(){setTimeout(_tela,60);}).observe(document.body,{childList:true,subtree:true,characterData:true});}catch(e){}',
+  '  setTimeout(_tela,300);setTimeout(_tela,1000);setTimeout(_tela,2200);',
+  '});',
+  '</' + 'script>',
+].join('\n');
+
+function montaSrcDocWeb(codigo, lang, htmlBase, preambulo) {
+  const estilo = '<style>body{font-family:system-ui,-apple-system,sans-serif;background:#ffffff;color:#0D0D0D;padding:14px;margin:0;font-size:15px}</style>';
+  const cabeca = '<!DOCTYPE html><html><head><meta charset="utf-8"/>' + estilo;
+
+  if (lang === 'html') {
+    // o código do aluno É a página (pode trazer <style> junto)
+    return cabeca + REPORTER_WEB + '</head><body>' + codigo + '</body></html>';
+  }
+
+  // js / ts: base HTML opcional + script do aluno
+  const user = escapaScript((preambulo ? preambulo + '\n\n' : '') + codigo);
+  const babel = lang === 'ts'
+    ? '<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></' + 'script>'
+    : '';
+  const abreScript = lang === 'ts'
+    ? '<script type="text/babel" data-presets="typescript">'
+    : '<script>';
+  return [
+    cabeca,
+    babel,
+    REPORTER_WEB,
+    '</head><body>',
+    htmlBase || '',
+    abreScript,
+    user,
     '</' + 'script></body></html>',
   ].join('\n');
 }
@@ -488,6 +591,27 @@ const CSS = String.raw`
 .parada-local { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--laranja); font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
 .parada-desc { font-size: 13px; color: var(--cinza); margin: 0; line-height: 1.4; }
 .parada-score { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--contraste); background: var(--lima); padding: 0 5px; font-weight: 700; }
+
+/* ---------- cards de curso (home) ---------- */
+.curso-card {
+  width: 100%; text-align: left; display: block;
+  background: var(--branco); border: 3px solid var(--tinta); border-radius: 0;
+  box-shadow: 6px 6px 0 var(--tinta);
+  padding: 16px 14px; margin: 14px 0;
+  color: var(--tinta); cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+.curso-card:hover { transform: translate(2px, 2px); box-shadow: 4px 4px 0 var(--tinta); }
+.curso-card:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--tinta); }
+.curso-card:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.curso-cta {
+  display: inline-block; margin-top: 12px;
+  font-family: 'Archivo Black', sans-serif; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 1px;
+  background: var(--laranja); color: var(--contraste);
+  border: 2px solid var(--tinta); padding: 6px 10px;
+}
 
 /* ---------- cartões ---------- */
 .card { background: var(--branco); border: 3px solid var(--tinta); box-shadow: 6px 6px 0 var(--tinta); padding: 18px 16px; margin: 16px 0; }
@@ -840,11 +964,18 @@ const CSS = String.raw`
 
 /* ============================ STORAGE ============================ */
 
-// fora do Claude o progresso vai no localStorage do navegador
+// fora do Claude o progresso vai no localStorage do navegador.
+// Formato atual: { cursos: { fullstack: { scores }, web: { scores } } }
+// (migra sozinho do formato antigo, que era { scores } só do fullstack)
 async function carregarProgresso() {
   try {
     const r = localStorage.getItem(STORAGE_KEY);
-    return r ? JSON.parse(r) : null;
+    if (!r) return null;
+    const p = JSON.parse(r);
+    if (p && p.scores && !p.cursos) {
+      return { cursos: { fullstack: { scores: p.scores } } };
+    }
+    return p;
   } catch (e) {
     return null; // chave ainda não existe
   }
@@ -858,15 +989,13 @@ async function salvarProgresso(p) {
   }
 }
 
-async function apagarProgresso() {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (e) { /* nada a apagar */ }
+function scoresDoCurso(progresso, cursoId) {
+  return (progresso && progresso.cursos && progresso.cursos[cursoId] && progresso.cursos[cursoId].scores) || {};
 }
 
-function calcXP(scores) {
+function calcXP(scores, modules) {
   let xp = 0;
-  for (const m of MODULES) {
+  for (const m of modules) {
     const s = scores[m.id] || 0;
     xp += s * 20;
     if (s === m.desafios.length) xp += 15; // bônus de gabaritar
@@ -1188,8 +1317,10 @@ function DesafioCode({ d, onResolvido }) {
   const [dicaIdx, setDicaIdx] = useState(-1);
   const [verGab, setVerGab] = useState(false);
   const [usouGabarito, setUsouGabarito] = useState(false);
+  const [regrasOkWeb, setRegrasOkWeb] = useState(!(d.regras && d.regras.length));
 
   const ehJava = d.lang === 'java';
+  const ehWeb = d.lang === 'html' || d.lang === 'js' || d.lang === 'ts';
 
   // escuta o sandbox (só desafios React)
   useEffect(() => {
@@ -1213,7 +1344,7 @@ function DesafioCode({ d, onResolvido }) {
     return () => window.removeEventListener('message', onMsg);
   }, [ehJava]);
 
-  const completo = ehJava ? javaOk : (faltam !== null && faltam.length === 0);
+  const completo = ehJava ? javaOk : (faltam !== null && faltam.length === 0 && regrasOkWeb);
 
   useEffect(() => {
     if (completo) estouraConfete({ particleCount: 70, spread: 80, origin: { y: 0.7 } });
@@ -1224,8 +1355,11 @@ function DesafioCode({ d, onResolvido }) {
     setErros([]);
     setLogs([]);
 
-    const base = lintDelimitadores(codigo);
-    const especifico = ehJava ? lintJava(codigo) : lintJSX(codigo);
+    const base = d.lang === 'html' ? lintHTML(codigo) : lintDelimitadores(codigo);
+    const especifico = ehJava ? lintJava(codigo)
+      : d.lang === 'js' || d.lang === 'ts' ? lintJS(codigo)
+      : d.lang === 'html' ? []
+      : lintJSX(codigo);
     const todos = [...base, ...especifico];
     const temErroDuro = todos.some(a => a.nivel === 'erro');
 
@@ -1241,17 +1375,22 @@ function DesafioCode({ d, onResolvido }) {
       return;
     }
 
-    // React: dicasAuto viram dica (não bloqueiam); erro duro bloqueia o run
+    // React/web: dicasAuto e regras viram dica (não bloqueiam o run);
+    // erro duro bloqueia. Nas linguagens web as regras também contam pra fechar.
     const autos = (d.dicasAuto || [])
       .filter(r => !new RegExp(r.re).test(codigo))
       .map(r => ({ nivel: 'dica', msg: r.falta }));
-    setLints([...todos, ...autos]);
+    const regrasFaltando = ehWeb
+      ? (d.regras || []).filter(r => !new RegExp(r.re).test(codigo))
+      : [];
+    setLints([...todos, ...autos, ...regrasFaltando.map(r => ({ nivel: 'dica', msg: r.falta }))]);
+    if (ehWeb) setRegrasOkWeb(regrasFaltando.length === 0);
     if (temErroDuro) {
       setSrc(null);
       return;
     }
     setFaltam([...d.esperado]);
-    setSrc(montaSrcDoc(codigo, d.preambulo));
+    setSrc(ehWeb ? montaSrcDocWeb(codigo, d.lang, d.htmlBase, d.preambulo) : montaSrcDoc(codigo, d.preambulo));
     setRodada(k => k + 1);
   }
 
@@ -1270,7 +1409,7 @@ function DesafioCode({ d, onResolvido }) {
 
       <div className="missao">
         <b>🎯 Missão:</b> {d.missao}
-        {!ehJava && (
+        {!ehJava && d.esperado && (
           <div className="alvos">
             {d.esperado.map(t => {
               const ok = faltam !== null && !faltam.includes(t);
@@ -1278,7 +1417,7 @@ function DesafioCode({ d, onResolvido }) {
             })}
           </div>
         )}
-        {ehJava && (
+        {(d.regras || []).length > 0 && (
           <div className="alvos">
             {(d.regras || []).map(r => (
               <span key={r.label} className={'alvo' + (new RegExp(r.re).test(codigo) ? ' alvo--ok' : '')}>{r.label}</span>
@@ -1395,38 +1534,52 @@ function DesafioCode({ d, onResolvido }) {
 
 /* ============================ TELAS ============================ */
 
-function TelaHome({ temProgresso, onStart }) {
+function TelaHome({ progresso, onEscolher }) {
   return (
     <motion.div variants={listaStagger} initial="inicial" animate="entra">
       <Letreiro
-        rota="LINHA 5X-SUL · SENTIDO FULLSTACK"
+        rota="TERMINAL DE PARTIDA · ESCOLHE TUA LINHA"
         destino={'DEV DO\nCORRE'}
-        sub="React + Java · do zero ao deploy"
+        sub="dois cursos · um destino: Faria Lima"
       />
       <motion.div className="card" variants={itemSobe}>
         <p className="card-txt">
-          Sete pontos de busão entre o <strong>Terminal Varginha</strong> e a{' '}
-          <strong>Faria Lima</strong>. Em cada parada: conceito rápido e desafios de
+          Dois busões saindo do extremo sul. Em cada parada: conceito rápido e desafios de
           três tipos — <strong>quiz</strong>, <strong>quebra-cabeça de encaixar código</strong> e{' '}
           <strong>código de verdade</strong>, que você digita, roda e vê acontecendo na tela,
-          com um lint amigável que explica o erro em bom português (bem mais claro que o da IDE).
-          Acertou 3 de 5, libera o próximo ponto.
+          com um lint amigável que explica o erro em bom português.
+          Acertou 3 de 5, libera o próximo ponto. Escolhe tua linha:
         </p>
       </motion.div>
-      <motion.div className="stack" variants={itemSobe}>
-        <button className="btn btn-laranja btn-pulsa" onClick={onStart}>
-          {temProgresso ? 'Continuar o corre' : 'Começar o corre'}
-        </button>
-      </motion.div>
-      <motion.p className="footer-note" variants={itemSobe}>Seu progresso fica salvo. Pode fechar e voltar depois, o busão te espera.</motion.p>
+      {CURSOS.map(c => {
+        const s = scoresDoCurso(progresso, c.id);
+        const completos = c.modules.filter(m => (s[m.id] || 0) >= 3).length;
+        const comecou = Object.keys(s).length > 0;
+        return (
+          <motion.div key={c.id} variants={itemSobe}>
+            <button className="curso-card" onClick={() => onEscolher(c.id)}>
+              <span className="parada-tag">
+                <span>{c.rota}</span>
+                {comecou && <span className="parada-score">{completos}/{c.modules.length} pontos</span>}
+              </span>
+              <p className="parada-nome">{c.titulo}</p>
+              <p className="parada-local">🚌 {c.sub}</p>
+              <p className="parada-desc">{c.desc}</p>
+              <span className="curso-cta">{comecou ? 'Continuar o corre →' : 'Começar o corre →'}</span>
+            </button>
+          </motion.div>
+        );
+      })}
+      <motion.p className="footer-note" variants={itemSobe}>Cada linha guarda o próprio progresso. Pode fechar e voltar depois, o busão te espera.</motion.p>
     </motion.div>
   );
 }
 
-function TelaTrilha({ progresso, onAbrir, onReset }) {
-  const xp = calcXP(progresso.scores);
-  const completos = MODULES.filter(m => (progresso.scores[m.id] || 0) >= 3).length;
-  const zerou = completos === MODULES.length;
+function TelaTrilha({ curso, scores, onAbrir, onReset, onTrocarCurso }) {
+  const modules = curso.modules;
+  const xp = calcXP(scores, modules);
+  const completos = modules.filter(m => (scores[m.id] || 0) >= 3).length;
+  const zerou = completos === modules.length;
 
   useEffect(() => {
     if (zerou) chuvaDeConfete();
@@ -1434,13 +1587,13 @@ function TelaTrilha({ progresso, onAbrir, onReset }) {
 
   return (
     <div>
-      <Letreiro mini rota="Trilha da linha" destino="Escolhe seu ponto" />
+      <Letreiro mini rota={curso.rota} destino="Escolhe seu ponto" />
       <XPBar xp={xp} />
       <motion.div className="trilha" variants={listaStagger} initial="inicial" animate="entra">
-        {MODULES.map((m, i) => {
-          const score = progresso.scores[m.id];
+        {modules.map((m, i) => {
+          const score = scores[m.id];
           const feito = (score || 0) >= 3;
-          const liberado = i === 0 || (progresso.scores[MODULES[i - 1].id] || 0) >= 3;
+          const liberado = i === 0 || (scores[modules[i - 1].id] || 0) >= 3;
           const atual = liberado && !feito;
           return (
             <motion.div className="parada" key={m.id} variants={itemLado}>
@@ -1471,14 +1624,17 @@ function TelaTrilha({ progresso, onAbrir, onReset }) {
           <p className="trofeu">🏆</p>
           <p className="card-titulo" style={{ display: 'block', textAlign: 'center', background: 'none' }}>Zerou a linha!</p>
           <p className="card-txt" style={{ textAlign: 'center' }}>
-            Do Terminal Varginha até a Faria Lima: <strong>{getLevel(xp).nome}</strong> com {xp} XP.
-            Agora é abrir o VS Code e o IntelliJ e construir o app de verdade. 🚀
+            Do {modules[0].ponto} até a {modules[modules.length - 1].ponto}:{' '}
+            <strong>{getLevel(xp).nome}</strong> com {xp} XP. {curso.finalTxt}
           </p>
         </motion.div>
       )}
+      <div className="stack">
+        <button className="btn btn-fantasma" onClick={onTrocarCurso}>↩ Trocar de linha (outro curso)</button>
+      </div>
       <p className="footer-note">
         Refazer um desafio atualiza sua melhor pontuação.{' '}
-        <button className="link-reset" onClick={onReset}>Zerar progresso</button>
+        <button className="link-reset" onClick={onReset}>Zerar progresso desta linha</button>
       </p>
     </div>
   );
@@ -1647,12 +1803,19 @@ function TelaResultado({ modulo, score, xpGanho, ehUltimo, onRefazer, onTrilha }
 
 export default function DevDoCorre() {
   const [tela, setTela] = useState('carregando');
-  const [progresso, setProgresso] = useState({ scores: {} });
+  const [progresso, setProgresso] = useState({ cursos: {} });
+  const [cursoId, setCursoId] = useState(() => {
+    try { return localStorage.getItem(CURSO_KEY) || 'fullstack'; } catch (e) { return 'fullstack'; }
+  });
   const [ativo, setAtivo] = useState(0);
   const [ultimoResultado, setUltimoResultado] = useState(null);
   const [temaId, setTemaId] = useState(() => {
     try { return localStorage.getItem(TEMA_KEY) || 'padrao'; } catch (e) { return 'padrao'; }
   });
+
+  const curso = CURSOS.find(c => c.id === cursoId) || CURSOS[0];
+  const modules = curso.modules;
+  const scores = scoresDoCurso(progresso, curso.id);
 
   useEffect(() => {
     try { localStorage.setItem(TEMA_KEY, temaId); } catch (e) { /* sem storage, segue no tema da sessão */ }
@@ -1666,11 +1829,18 @@ export default function DevDoCorre() {
     let vivo = true;
     carregarProgresso().then(p => {
       if (!vivo) return;
-      if (p && p.scores) setProgresso(p);
+      if (p && p.cursos) setProgresso(p);
       setTela('home');
     });
     return () => { vivo = false; };
   }, []);
+
+  function escolherCurso(id) {
+    setCursoId(id);
+    try { localStorage.setItem(CURSO_KEY, id); } catch (e) { /* segue sem salvar */ }
+    setAtivo(0);
+    setTela('trilha');
+  }
 
   function abrirModulo(i) {
     setAtivo(i);
@@ -1678,11 +1848,12 @@ export default function DevDoCorre() {
   }
 
   function fimDosDesafios(score) {
-    const m = MODULES[ativo];
-    const xpAntes = calcXP(progresso.scores);
-    const melhor = Math.max(progresso.scores[m.id] || 0, score);
-    const novo = { ...progresso, scores: { ...progresso.scores, [m.id]: melhor } };
-    const xpDepois = calcXP(novo.scores);
+    const m = modules[ativo];
+    const xpAntes = calcXP(scores, modules);
+    const melhor = Math.max(scores[m.id] || 0, score);
+    const novosScores = { ...scores, [m.id]: melhor };
+    const novo = { ...progresso, cursos: { ...progresso.cursos, [curso.id]: { scores: novosScores } } };
+    const xpDepois = calcXP(novosScores, modules);
     setProgresso(novo);
     salvarProgresso(novo);
     setUltimoResultado({ score, xpGanho: xpDepois - xpAntes });
@@ -1691,15 +1862,14 @@ export default function DevDoCorre() {
 
   async function resetar() {
     const ok = typeof window !== 'undefined' && window.confirm
-      ? window.confirm('Certeza que quer zerar tudo? Vai apagar XP e progresso.')
+      ? window.confirm('Certeza que quer zerar o curso ' + curso.titulo + '? Vai apagar XP e progresso só dessa linha.')
       : true;
     if (!ok) return;
-    await apagarProgresso();
-    setProgresso({ scores: {} });
+    const novo = { ...progresso, cursos: { ...progresso.cursos, [curso.id]: { scores: {} } } };
+    setProgresso(novo);
+    await salvarProgresso(novo);
     setTela('home');
   }
-
-  const temProgresso = Object.keys(progresso.scores).length > 0;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -1725,32 +1895,38 @@ export default function DevDoCorre() {
           <Letreiro rota="AGUARDE..." destino="Chamando o busão" sub="carregando seu progresso" />
         )}
         {tela === 'home' && (
-          <TelaHome temProgresso={temProgresso} onStart={() => setTela('trilha')} />
+          <TelaHome progresso={progresso} onEscolher={escolherCurso} />
         )}
         {tela === 'trilha' && (
-          <TelaTrilha progresso={progresso} onAbrir={abrirModulo} onReset={resetar} />
+          <TelaTrilha
+            curso={curso}
+            scores={scores}
+            onAbrir={abrirModulo}
+            onReset={resetar}
+            onTrocarCurso={() => setTela('home')}
+          />
         )}
         {tela === 'licao' && (
           <TelaLicao
-            modulo={MODULES[ativo]}
+            modulo={modules[ativo]}
             onDesafio={() => setTela('desafios')}
             onVoltar={() => setTela('trilha')}
           />
         )}
         {tela === 'desafios' && (
           <TelaDesafios
-            key={ativo}
-            modulo={MODULES[ativo]}
+            key={curso.id + '-' + ativo}
+            modulo={modules[ativo]}
             onFim={fimDosDesafios}
             onVoltar={() => setTela('trilha')}
           />
         )}
         {tela === 'resultado' && ultimoResultado && (
           <TelaResultado
-            modulo={MODULES[ativo]}
+            modulo={modules[ativo]}
             score={ultimoResultado.score}
             xpGanho={ultimoResultado.xpGanho}
-            ehUltimo={ativo === MODULES.length - 1}
+            ehUltimo={ativo === modules.length - 1}
             onRefazer={() => setTela('licao')}
             onTrilha={() => setTela('trilha')}
           />
@@ -1765,7 +1941,9 @@ export default function DevDoCorre() {
 
 /* ============================ CONTEÚDO ============================ */
 
-const MODULES = [
+/* ---------- LINHA 5X-SUL · React + Java (fullstack) ---------- */
+
+const MODULES_FULLSTACK = [
   {
     id: 'react-basico',
     nome: 'React: o começo do corre',
@@ -2418,5 +2596,812 @@ const MODULES = [
         explain: 'Com @RestController, o retorno do método passa pelo Jackson e vira JSON sozinho. Você devolve o objeto, o Spring cuida do resto.',
       },
     ],
+  },
+];
+
+/* ---------- LINHA 6X-SUL · HTML + CSS + JS + mini TypeScript ---------- */
+
+const MODULES_WEB = [
+  {
+    id: 'html-base',
+    nome: 'HTML: o esqueleto de tudo',
+    ponto: 'Terminal Parelheiros',
+    tag: 'PONTO 01',
+    desc: 'Tags, títulos, parágrafos, listas, links e imagens.',
+    lessons: [
+      {
+        t: 'O que é HTML, afinal?',
+        txt: 'HTML é a ESTRUTURA da página — o esqueleto. Ele diz O QUE existe na tela: um título, um parágrafo, uma lista, uma imagem. Tudo é feito de TAGS: quase toda tag abre <assim> e fecha </assim>, e o conteúdo vai no meio.',
+        code: '<h1>Dev do Corre</h1>\n<p>Direto do extremo sul.</p>',
+      },
+      {
+        t: 'Títulos, parágrafos e listas',
+        txt: 'Títulos vão de <h1> (o mais importante, um por página) até <h6>. Parágrafo é <p>. Lista com bolinha é <ul> e lista numerada é <ol> — as duas com itens <li> dentro.',
+        code: '<h2>Corres da semana</h2>\n<ul>\n  <li>Estudar HTML</li>\n  <li>Pagar o boleto</li>\n</ul>',
+      },
+      {
+        t: 'Links e imagens',
+        txt: 'Link é <a href="url">texto</a>. Imagem é <img src="url" alt="descrição"> — o alt descreve a imagem pra quem usa leitor de tela e aparece se ela não carregar. A <img> é uma tag VAZIA: não tem fechamento.',
+        code: '<a href="https://google.com">Pesquisar</a>\n<img src="busao.png" alt="Ônibus da linha 5X-Sul" />',
+      },
+    ],
+    desafios: [
+      {
+        tipo: 'quiz',
+        q: 'Qual o papel do HTML numa página web?',
+        opts: [
+          'Dar o visual: cores, fontes e espaçamento',
+          'Dar a ESTRUTURA: dizer o que existe na página',
+          'Dar a lógica: reagir a cliques e calcular coisas',
+          'Guardar os dados no servidor',
+        ],
+        correct: 1,
+        explain: 'HTML é o esqueleto (estrutura), CSS é a roupa (visual) e JavaScript é o movimento (lógica). Cada um no seu corre.',
+      },
+      {
+        tipo: 'encaixe',
+        enunciado: 'Monta a estrutura básica: um main com título e parágrafo dentro:',
+        pecas: [
+          '<main>',
+          '  <h1>Dev do Corre</h1>',
+          '  <p>Do extremo sul pro mundo.</p>',
+          '</main>',
+        ],
+        explain: 'Abre o <main>, conteúdo indentado dentro (título primeiro, depois o parágrafo), e fecha o </main>. Tag que abre, fecha.',
+      },
+      {
+        tipo: 'code',
+        lang: 'html',
+        arquivo: 'index.html',
+        enunciado: 'Tua primeira página, rodando DE VERDADE:',
+        missao: 'fazer aparecer um título h1 escrito Salve, quebrada! e um parágrafo p com um texto teu embaixo.',
+        starter: '<!-- escreve teu HTML aqui embaixo -->\n<!-- 1) um titulo h1 com: Salve, quebrada! -->\n<!-- 2) um paragrafo p com um texto teu -->\n\n',
+        esperado: ['Salve, quebrada!'],
+        regras: [
+          { re: '<h1[\\s>]', label: '<h1>', falta: 'Falta o título: <h1>Salve, quebrada!</h1>' },
+          { re: '<p[\\s>]', label: '<p>', falta: 'Falta o parágrafo: <p>algum texto teu</p>' },
+        ],
+        dicas: [
+          'Tag abre e fecha: <h1>texto</h1>.',
+          'O <p> vai logo embaixo do <h1>, cada um na sua linha.',
+        ],
+        gabarito: '<h1>Salve, quebrada!</h1>\n<p>Primeira página no ar, direto do extremo sul.</p>',
+      },
+      {
+        tipo: 'quiz',
+        q: 'Pra que serve o atributo alt da <img>?',
+        opts: [
+          'Deixa a imagem maior quando passa o mouse',
+          'Descreve a imagem pra leitores de tela e aparece se ela não carregar',
+          'É o link pra onde a imagem leva',
+          'Define a pasta onde a imagem fica salva',
+        ],
+        correct: 1,
+        explain: 'O alt é acessibilidade pura: quem não enxerga a imagem (pessoa ou robô do Google) lê a descrição. E se o src quebrar, é ele que aparece.',
+      },
+      {
+        tipo: 'code',
+        lang: 'html',
+        arquivo: 'index.html',
+        enunciado: 'Lista de corres da semana:',
+        missao: 'uma lista ul com 3 itens li: Estudar HTML, Treinar CSS e Dominar o JS.',
+        starter: '<h2>Corres da semana</h2>\n<!-- monta a lista com 3 itens aqui -->\n\n',
+        esperado: ['Estudar HTML', 'Treinar CSS', 'Dominar o JS'],
+        regras: [
+          { re: '<ul[\\s>]', label: '<ul>', falta: 'A lista começa com <ul> e fecha com </ul>.' },
+          { re: '<li[\\s>]', label: '<li>', falta: 'Cada item da lista é um <li>texto</li>, dentro da <ul>.' },
+        ],
+        dicas: [
+          'Estrutura: <ul> por fora, e dentro um <li> pra cada item.',
+          'São 3 <li>: um pra cada corre da missão.',
+        ],
+        gabarito: '<h2>Corres da semana</h2>\n<ul>\n  <li>Estudar HTML</li>\n  <li>Treinar CSS</li>\n  <li>Dominar o JS</li>\n</ul>',
+      },
+    ],
+  },
+  {
+    id: 'html-forms',
+    nome: 'HTML: semântica e formulários',
+    ponto: 'Jardim Ângela',
+    tag: 'PONTO 02',
+    desc: 'Tags semânticas, formulários, inputs e acessibilidade.',
+    lessons: [
+      {
+        t: 'Semântica: div pra tudo é cilada',
+        txt: 'Existem tags que DIZEM o que são: <header> (topo), <nav> (menu), <main> (conteúdo principal), <section> (seção) e <footer> (rodapé). O visual é igual ao da div — mas leitor de tela, Google e outros devs entendem tua página na hora.',
+        code: '<header>logo e menu</header>\n<main>\n  <section>conteúdo</section>\n</main>\n<footer>contato</footer>',
+      },
+      {
+        t: 'Formulários: a porta de entrada',
+        txt: 'Formulário é onde o usuário digita coisa: <form> embrulha tudo, <input> é o campo (o type muda o teclado e a validação: text, email, password, number...) e <label> dá nome ao campo.',
+        code: '<form>\n  <label for="nome">Seu nome</label>\n  <input id="nome" type="text" />\n</form>',
+      },
+      {
+        t: 'label + id: a dupla da acessibilidade',
+        txt: 'O for do <label> aponta pro id do <input>. Com isso, clicar no texto já foca o campo — e o leitor de tela anuncia o nome certo. Atributos úteis: placeholder (dica dentro do campo) e required (obriga preencher).',
+        code: '<label for="email">Seu e-mail</label>\n<input\n  id="email"\n  type="email"\n  placeholder="voce@exemplo.com"\n  required\n/>',
+      },
+    ],
+    desafios: [
+      {
+        tipo: 'quiz',
+        q: 'Por que usar <main>, <header> e <nav> em vez de <div> pra tudo?',
+        opts: [
+          'Porque carregam mais rápido que a div',
+          'Porque leitor de tela e buscadores entendem a estrutura da página',
+          'Porque a div vai ser descontinuada',
+          'Porque só elas aceitam CSS',
+        ],
+        correct: 1,
+        explain: 'É semântica: a tag DIZ o que ela é. Acessibilidade e SEO agradecem — e o visual você controla com CSS do mesmo jeito.',
+      },
+      {
+        tipo: 'encaixe',
+        enunciado: 'Monta o formulário acessível: label, input e botão, nessa ordem:',
+        pecas: [
+          '<form>',
+          '  <label for="nome">Seu nome</label>',
+          '  <input id="nome" type="text" />',
+          '  <button type="button">Enviar</button>',
+          '</form>',
+        ],
+        explain: 'O <form> embrulha tudo. O for="nome" do label aponta pro id="nome" do input — é esse par que liga os dois.',
+      },
+      {
+        tipo: 'code',
+        lang: 'html',
+        arquivo: 'cadastro.html',
+        enunciado: 'Formulário da newsletter do corre:',
+        missao: 'um form com label escrito Seu e-mail, um input do tipo email e um botão escrito Cadastrar.',
+        starter: '<h2>Newsletter do corre</h2>\n<!-- form: label + campo de e-mail + botao Cadastrar -->\n\n',
+        esperado: ['Seu e-mail', 'Cadastrar'],
+        regras: [
+          { re: '<form[\\s>]', label: '<form>', falta: 'Embrulha tudo num <form> ... </form>.' },
+          { re: '<label[\\s>]', label: '<label>', falta: 'Falta o <label>Seu e-mail</label> — é ele que dá nome ao campo.' },
+          { re: 'type="email"|type=\'email\'', label: 'type email', falta: 'O campo é <input type="email"> — o navegador já valida o formato sozinho.' },
+          { re: '<button[\\s>]', label: '<button>', falta: 'Falta o <button>Cadastrar</button>.' },
+        ],
+        dicas: [
+          'Ordem dentro do form: label, input, button.',
+          'Capricho extra: liga o label no input com for="email" e id="email".',
+        ],
+        gabarito: '<h2>Newsletter do corre</h2>\n<form>\n  <label for="email">Seu e-mail</label>\n  <input id="email" type="email" placeholder="voce@exemplo.com" />\n  <button type="button">Cadastrar</button>\n</form>',
+      },
+      {
+        tipo: 'quiz',
+        q: 'Qual type de input esconde o que a pessoa digita?',
+        opts: ['type="hidden"', 'type="password"', 'type="secret"', 'type="text"'],
+        correct: 1,
+        explain: 'type="password" mostra bolinha no lugar das letras. O hidden é outra coisa: um campo invisível que vai junto no envio do form.',
+      },
+      {
+        tipo: 'quiz',
+        q: 'O que acontece quando o for do label aponta pro id do input?',
+        opts: [
+          'Nada, é só organização',
+          'Clicar no label foca o campo, e o leitor de tela anuncia o nome certo',
+          'O campo vira obrigatório',
+          'O label fica em negrito automaticamente',
+        ],
+        correct: 1,
+        explain: 'Essa ligação é acessibilidade de verdade: área de clique maior e nome anunciado pro leitor de tela. Custa nada e muda tudo.',
+      },
+    ],
+  },
+  {
+    id: 'css-base',
+    nome: 'CSS: dando o visual',
+    ponto: 'Capão Redondo',
+    tag: 'PONTO 03',
+    desc: 'Seletores, cores, box model e as primeiras regras.',
+    lessons: [
+      {
+        t: 'A anatomia de uma regra CSS',
+        txt: 'CSS é o VISUAL. Uma regra tem: seletor (quem vai mudar), e dentro das chaves os pares propriedade: valor; — cada um fechando com ponto e vírgula. Seletores básicos: a tag (h1), a classe (.destaque) e o id (#topo).',
+        code: 'h1 {\n  color: #FF4D00;\n  font-size: 32px;\n}\n\n.destaque { background: yellow; }',
+      },
+      {
+        t: 'Box model: tudo é caixa',
+        txt: 'TODO elemento é uma caixa com 4 camadas, de dentro pra fora: conteúdo → padding (respiro interno) → border (a moldura) → margin (distância pros vizinhos). Dominar isso resolve 80% dos "por que esse espaço tá aí?".',
+        code: '.card {\n  padding: 16px;   /* respiro interno */\n  border: 2px solid black;\n  margin: 12px;    /* distancia pros vizinhos */\n}',
+      },
+      {
+        t: 'Cores e unidades',
+        txt: 'Cor pode ser nome (orange), hexadecimal (#FF4D00) ou rgb(255, 77, 0). Tamanho: px é fixo, % é relativo ao pai, e rem é relativo à fonte base da página (ótimo pra acessibilidade — acompanha o zoom do usuário).',
+        code: 'p {\n  color: #0D0D0D;\n  font-size: 1rem;  /* = 16px por padrao */\n  width: 80%;\n}',
+      },
+    ],
+    desafios: [
+      {
+        tipo: 'quiz',
+        q: 'Qual seletor pega TODOS os elementos com class="destaque"?',
+        opts: ['#destaque', 'destaque', '.destaque', '<destaque>'],
+        correct: 2,
+        explain: 'Ponto (.) é classe, cerquilha (#) é id. Classe pode repetir em vários elementos; id é único na página.',
+      },
+      {
+        tipo: 'code',
+        lang: 'html',
+        arquivo: 'index.html',
+        enunciado: 'Teu primeiro CSS — estiliza o título:',
+        missao: 'deixar o h1 laranja (#FF4D00) e centralizado, mexendo só dentro do bloco style.',
+        starter: '<style>\n  h1 {\n    /* 1) pinta de #FF4D00 (propriedade de cor do texto) */\n    /* 2) centraliza o texto (propriedade de alinhamento) */\n  }\n</style>\n\n<h1>Corre estiloso</h1>',
+        esperado: ['Corre estiloso'],
+        regras: [
+          { re: 'color\\s*:\\s*#?\\w', label: 'color', falta: 'Dentro do h1 { }: color: #FF4D00; — sempre propriedade: valor;' },
+          { re: 'text-align\\s*:\\s*center', label: 'centralizado', falta: 'Pra centralizar texto: text-align: center;' },
+        ],
+        dicas: [
+          'Cada linha de CSS: propriedade: valor; (com ; no final).',
+          'As duas propriedades: color: #FF4D00; e text-align: center;',
+        ],
+        gabarito: '<style>\n  h1 {\n    color: #FF4D00;\n    text-align: center;\n  }\n</style>\n\n<h1>Corre estiloso</h1>',
+      },
+      {
+        tipo: 'quiz',
+        q: 'No box model, o padding é:',
+        opts: [
+          'A distância entre o elemento e os vizinhos',
+          'O respiro INTERNO, entre o conteúdo e a borda',
+          'A grossura da borda',
+          'A sombra do elemento',
+        ],
+        correct: 1,
+        explain: 'De dentro pra fora: conteúdo → padding → border → margin. Padding é dentro da caixa; margin é fora, empurrando os vizinhos.',
+      },
+      {
+        tipo: 'encaixe',
+        enunciado: 'Monta a regra CSS do card — seletor de classe e box model:',
+        pecas: [
+          '.card {',
+          '  background: white;',
+          '  padding: 16px;',
+          '  border: 2px solid black;',
+          '}',
+        ],
+        explain: 'Seletor .card (classe), abre chave, cada propriedade: valor; numa linha, e fecha a chave. Essa é a anatomia de TODA regra CSS.',
+      },
+      {
+        tipo: 'code',
+        lang: 'html',
+        arquivo: 'index.html',
+        enunciado: 'Botão estiloso — o combo clássico:',
+        missao: 'estilizar o botão com fundo (background), cantos arredondados (border-radius) e um respiro interno (padding).',
+        starter: '<style>\n  button {\n    /* fundo, cantos arredondados e respiro interno */\n    border: none;\n    font-size: 16px;\n    cursor: pointer;\n  }\n</style>\n\n<button>Cola no corre</button>',
+        esperado: ['Cola no corre'],
+        regras: [
+          { re: 'background(-color)?\\s*:', label: 'background', falta: 'Dá um fundo: background: #FF4D00; (ou a cor que quiser).' },
+          { re: 'border-radius\\s*:', label: 'border-radius', falta: 'Cantos arredondados: border-radius: 8px;' },
+          { re: 'padding\\s*:', label: 'padding', falta: 'Respiro interno: padding: 12px 20px; (vertical e horizontal).' },
+        ],
+        dicas: [
+          'Tudo dentro do button { } que já existe no style.',
+          'Exemplo completo: background: #FF4D00; border-radius: 8px; padding: 12px 20px;',
+        ],
+        gabarito: '<style>\n  button {\n    background: #FF4D00;\n    border-radius: 8px;\n    padding: 12px 20px;\n    border: none;\n    font-size: 16px;\n    cursor: pointer;\n  }\n</style>\n\n<button>Cola no corre</button>',
+      },
+    ],
+  },
+  {
+    id: 'css-layout',
+    nome: 'CSS: flexbox e responsivo',
+    ponto: 'Campo Limpo',
+    tag: 'PONTO 04',
+    desc: 'Flexbox, grid e a página que funciona em qualquer tela.',
+    lessons: [
+      {
+        t: 'Flexbox: alinhar sem sofrimento',
+        txt: 'display: flex no PAI enfileira os filhos. justify-content distribui no eixo principal (horizontal, por padrão), align-items alinha no eixo cruzado, e gap dá o espacinho entre eles. O combo justify + align centraliza qualquer coisa.',
+        code: '.pai {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  gap: 12px;\n}',
+      },
+      {
+        t: 'Grid: layout em duas dimensões',
+        txt: 'Flexbox é uma fileira (uma dimensão). Grid é tabela (duas): você define as colunas com grid-template-columns e os filhos se encaixam. 1fr = uma fração do espaço livre.',
+        code: '.galeria {\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  gap: 12px;\n}',
+      },
+      {
+        t: 'Responsivo: mobile first',
+        txt: 'Media query aplica CSS só quando a tela cumpre a condição. Mobile first é escrever o CSS base pro celular e ir MELHORANDO pra telas maiores com min-width — a maioria dos teus usuários está no busão, no celular.',
+        code: '/* base: celular */\n.galeria { grid-template-columns: 1fr; }\n\n@media (min-width: 700px) {\n  .galeria { grid-template-columns: 1fr 1fr 1fr; }\n}',
+      },
+    ],
+    desafios: [
+      {
+        tipo: 'quiz',
+        q: 'Com display: flex no pai, qual combo centraliza os filhos na horizontal E na vertical?',
+        opts: [
+          'text-align: center + vertical-align: middle',
+          'justify-content: center + align-items: center',
+          'margin: auto + padding: auto',
+          'center: both',
+        ],
+        correct: 1,
+        explain: 'justify-content cuida do eixo principal, align-items do eixo cruzado. Esse combo é o "centraliza tudo" mais usado do CSS moderno.',
+      },
+      {
+        tipo: 'code',
+        lang: 'html',
+        arquivo: 'index.html',
+        enunciado: 'Navbar com flexbox — os links lado a lado:',
+        missao: 'transformar a nav em flex e espalhar os links (justify-content ou gap).',
+        starter: '<style>\n  nav {\n    /* vira flex e espalha os links */\n    background: #FFF3B0;\n    padding: 12px;\n  }\n  a { text-decoration: none; color: #0D0D0D; font-weight: bold; }\n</style>\n\n<nav>\n  <a href="#">Início</a>\n  <a href="#">Sobre</a>\n  <a href="#">Contato</a>\n</nav>',
+        esperado: ['Início', 'Sobre', 'Contato'],
+        regras: [
+          { re: 'display\\s*:\\s*flex', label: 'display: flex', falta: 'No seletor nav: display: flex; — é isso que enfileira os links.' },
+          { re: 'justify-content\\s*:|gap\\s*:', label: 'espaçamento', falta: 'Espalha com justify-content: space-between; (ou dá um gap: 24px;).' },
+        ],
+        dicas: [
+          'As propriedades vão dentro do nav { }.',
+          'display: flex; justify-content: space-between; resolve.',
+        ],
+        gabarito: '<style>\n  nav {\n    display: flex;\n    justify-content: space-between;\n    background: #FFF3B0;\n    padding: 12px;\n  }\n  a { text-decoration: none; color: #0D0D0D; font-weight: bold; }\n</style>\n\n<nav>\n  <a href="#">Início</a>\n  <a href="#">Sobre</a>\n  <a href="#">Contato</a>\n</nav>',
+      },
+      {
+        tipo: 'quiz',
+        q: 'O que uma @media (min-width: 700px) { ... } faz?',
+        opts: [
+          'Limita a página a 700px de largura',
+          'Aplica aquele CSS só quando a tela tem 700px ou mais',
+          'Redimensiona as imagens pra 700px',
+          'Esconde a página em telas pequenas',
+        ],
+        correct: 1,
+        explain: 'Media query é um "se": SE a tela for maior ou igual a 700px, aplica essas regras. É a base do layout responsivo.',
+      },
+      {
+        tipo: 'encaixe',
+        enunciado: 'Monta a galeria em grid com 3 colunas iguais:',
+        pecas: [
+          '.galeria {',
+          '  display: grid;',
+          '  grid-template-columns: 1fr 1fr 1fr;',
+          '  gap: 12px;',
+          '}',
+        ],
+        explain: 'Primeiro vira grid, depois define as colunas (três frações iguais) e o gap dá o respiro entre os cards.',
+      },
+      {
+        tipo: 'quiz',
+        q: '"Mobile first" significa:',
+        opts: [
+          'Fazer um app nativo antes do site',
+          'Escrever o CSS base pro celular e melhorar pra telas maiores com min-width',
+          'Esconder conteúdo no celular',
+          'Testar só no iPhone',
+        ],
+        correct: 1,
+        explain: 'O CSS base atende a tela menor (a maioria dos acessos), e as media queries com min-width vão ADICIONANDO melhorias pra desktop.',
+      },
+    ],
+  },
+  {
+    id: 'js-base',
+    nome: 'JS: a lógica do corre',
+    ponto: 'Santo Amaro',
+    tag: 'PONTO 05',
+    desc: 'Variáveis, tipos, funções, condicionais e console.',
+    lessons: [
+      {
+        t: 'Variáveis: const e let',
+        txt: 'JavaScript é o MOVIMENTO da página. Variável guarda valor: const pra quem não vai ser reatribuído (uso padrão) e let pra quem muda. O var é dos tempos antigos — evita. Tipos básicos: string, number e boolean.',
+        code: "const nome = 'Edu';    // texto (string)\nlet saldo = 150;       // numero\nconst noCorre = true;  // booleano",
+      },
+      {
+        t: 'Funções e condicionais',
+        txt: 'Função é um bloco reutilizável: recebe parâmetros, faz o trabalho e devolve com return. O if/else decide o caminho — e compara sempre com === (igualdade estrita, sem gambiarra de conversão).',
+        code: "function podePagar(saldo, preco) {\n  if (saldo >= preco) {\n    return 'Pode pagar';\n  }\n  return 'Vai ficar devendo';\n}",
+      },
+      {
+        t: 'console.log e template strings',
+        txt: 'console.log imprime no console — teu melhor amigo pra depurar. Template string usa CRASE (`) e interpola valores com ${ }: bem mais limpo que somar strings com +.',
+        code: "const nome = 'Edu';\nconst idade = 25;\nconsole.log(`${nome} tem ${idade} anos`);",
+      },
+    ],
+    desafios: [
+      {
+        tipo: 'quiz',
+        q: 'Diferença entre const e let:',
+        opts: [
+          'const é mais rápida',
+          'const não pode ser REATRIBUÍDA; let pode',
+          'let só funciona dentro de função',
+          'São idênticas, só muda o nome',
+        ],
+        correct: 1,
+        explain: 'const nome = "Edu" e depois nome = "Bia"? Erro. Com let, pode. Regra prática: começa tudo com const e só troca pra let quando precisar reatribuir.',
+      },
+      {
+        tipo: 'code',
+        lang: 'js',
+        arquivo: 'script.js',
+        enunciado: 'Teu primeiro JavaScript — variáveis e console:',
+        missao: 'criar const nome = "Edu" e const idade = 25, e imprimir no console: Edu tem 25 anos — usando template string (crase + interpolação).',
+        starter: '// 1) cria a const nome com o valor "Edu"\n// 2) cria a const idade com o valor 25\n// 3) imprime a frase no console usando crase e interpolacao\n\n',
+        esperado: ['Edu tem 25 anos'],
+        regras: [
+          { re: '(const|let)\\s+nome', label: 'nome', falta: 'Cria a variável: const nome = \'Edu\';' },
+          { re: '(const|let)\\s+idade', label: 'idade', falta: 'Cria a variável: const idade = 25; (número vai sem aspas).' },
+          { re: '\\$\\{', label: 'template string', falta: 'Template string: `${nome} tem ${idade} anos` — repara que é CRASE (`), não aspas.' },
+        ],
+        dicas: [
+          'Cada linha termina com ; — const nome = \'Edu\';',
+          'A impressão: console.log(`${nome} tem ${idade} anos`);',
+        ],
+        gabarito: "const nome = 'Edu';\nconst idade = 25;\nconsole.log(`${nome} tem ${idade} anos`);",
+      },
+      {
+        tipo: 'quiz',
+        q: 'Qual a diferença entre == e === ?',
+        opts: [
+          'Nenhuma, é estilo',
+          '=== compara valor E tipo, sem converter nada; == converte antes de comparar',
+          '=== é só pra números',
+          '== é mais moderno',
+        ],
+        correct: 1,
+        explain: '"5" == 5 dá true (converte!), "5" === 5 dá false. O === é previsível — usa ele por padrão e evita sustos.',
+      },
+      {
+        tipo: 'encaixe',
+        enunciado: 'Monta a função que decide se pode dirigir:',
+        pecas: [
+          'function podeDirigir(idade) {',
+          '  if (idade >= 18) {',
+          "    return 'Pode dirigir';",
+          '  }',
+          "  return 'Ainda não';",
+          '}',
+        ],
+        explain: 'Função → if com a condição → return do caso verdadeiro → fecha o if → return do caso contrário. Se o if deu return, o resto nem roda.',
+      },
+      {
+        tipo: 'code',
+        lang: 'js',
+        arquivo: 'script.js',
+        enunciado: 'Tua primeira função de verdade:',
+        missao: 'criar a função dobro(n) que devolve n * 2, e imprimir no console o dobro de 21 — tem que sair 42.',
+        starter: '// 1) cria a funcao dobro, que recebe n e devolve n * 2\n// 2) imprime no console o resultado pra 21\n\n',
+        esperado: ['42'],
+        regras: [
+          { re: 'function\\s+dobro|const\\s+dobro', label: 'função dobro', falta: 'Declara: function dobro(n) { ... }' },
+          { re: 'return', label: 'return', falta: 'A função precisa DEVOLVER o resultado: return n * 2;' },
+          { re: 'dobro\\(21\\)', label: 'dobro(21)', falta: 'Chama a função com 21: console.log(dobro(21));' },
+        ],
+        dicas: [
+          'A função: function dobro(n) { return n * 2; }',
+          'E embaixo: console.log(dobro(21));',
+        ],
+        gabarito: 'function dobro(n) {\n  return n * 2;\n}\n\nconsole.log(dobro(21));',
+      },
+    ],
+  },
+  {
+    id: 'js-dom',
+    nome: 'JS: DOM e eventos',
+    ponto: 'Brooklin',
+    tag: 'PONTO 06',
+    desc: 'querySelector, addEventListener e a página ganhando vida.',
+    lessons: [
+      {
+        t: 'O DOM: tua página vista pelo JS',
+        txt: 'O navegador transforma o HTML numa árvore de objetos: o DOM. O JS enxerga e mexe nessa árvore pelo document. Pra pegar um elemento: document.querySelector() — aceita qualquer seletor CSS (#id, .classe, tag).',
+        code: "const titulo = document.querySelector('#titulo');\nconst botao = document.querySelector('.btn');",
+      },
+      {
+        t: 'Eventos: reagindo ao usuário',
+        txt: 'addEventListener escuta o que acontece: click, input, submit, keydown... Você passa o nome do evento e a função que roda quando ele dispara.',
+        code: "botao.addEventListener('click', () => {\n  console.log('clicou!');\n});",
+      },
+      {
+        t: 'Mudando a página',
+        txt: 'textContent troca o TEXTO de um elemento (seguro). innerHTML interpreta HTML — cuidado com texto vindo do usuário. classList liga/desliga classes CSS: add, remove e toggle.',
+        code: "titulo.textContent = 'Novo título';\ncard.classList.toggle('escuro');",
+      },
+    ],
+    desafios: [
+      {
+        tipo: 'quiz',
+        q: "document.querySelector('#placar') pega o quê?",
+        opts: [
+          'Todos os elementos da classe placar',
+          'O elemento com id="placar"',
+          'A tag <placar>',
+          'O primeiro parágrafo da página',
+        ],
+        correct: 1,
+        explain: 'O querySelector usa a MESMA sintaxe dos seletores CSS: # é id, . é classe, sem nada é tag.',
+      },
+      {
+        tipo: 'code',
+        lang: 'js',
+        arquivo: 'script.js',
+        enunciado: 'O clássico: botão contador, agora em JS puro.',
+        contexto: 'O HTML já está na página (olha o preview). Teu trabalho é só o JavaScript.',
+        missao: 'a cada clique no botão, o placar sobe: Cliques: 0 → Cliques: 1 → Cliques: 2...',
+        testa: '👆 clica no botão do preview!',
+        htmlBase: '<p id="placar">Cliques: 0</p><button id="botao">Clica aí</button>',
+        starter: '// 1) pega o placar e o botao (id placar / id botao)\n// 2) cria let cliques = 0\n// 3) escuta o clique do botao: soma 1 e atualiza o texto do placar\n\n',
+        esperado: ['Cliques: 0', 'Cliques: 1'],
+        regras: [
+          { re: 'querySelector|getElementById', label: 'pegar elemento', falta: "Pega os elementos com document.querySelector('#placar') e ('#botao')." },
+          { re: 'addEventListener', label: 'escutar clique', falta: "Escuta o clique: botao.addEventListener('click', () => { ... });" },
+          { re: 'textContent|innerText|innerHTML', label: 'atualizar texto', falta: 'Atualiza o placar: placar.textContent = `Cliques: ${cliques}`;' },
+        ],
+        dicas: [
+          "Os elementos: const placar = document.querySelector('#placar'); const botao = document.querySelector('#botao');",
+          'O contador: let cliques = 0; (let, porque vai mudar!)',
+          "No listener: cliques++; placar.textContent = `Cliques: ${cliques}`;",
+        ],
+        gabarito: "const placar = document.querySelector('#placar');\nconst botao = document.querySelector('#botao');\nlet cliques = 0;\n\nbotao.addEventListener('click', () => {\n  cliques++;\n  placar.textContent = `Cliques: ${cliques}`;\n});",
+      },
+      {
+        tipo: 'encaixe',
+        enunciado: 'Monta o botão de modo escuro — evento + classList:',
+        pecas: [
+          "const botao = document.querySelector('#tema');",
+          "botao.addEventListener('click', () => {",
+          "  document.body.classList.toggle('escuro');",
+          '});',
+        ],
+        explain: 'Primeiro pega o botão, depois escuta o clique, e dentro do listener o toggle liga/desliga a classe no body. Três linhas, modo escuro pronto.',
+      },
+      {
+        tipo: 'quiz',
+        q: 'Diferença entre textContent e innerHTML:',
+        opts: [
+          'São idênticos',
+          'textContent trata tudo como TEXTO puro; innerHTML interpreta as tags — perigoso com dado do usuário',
+          'innerHTML é mais rápido, sempre prefira',
+          'textContent só funciona em parágrafos',
+        ],
+        correct: 1,
+        explain: 'Se o usuário digitar <script> e você jogar no innerHTML, o navegador executa (isso é XSS). Texto vindo de gente de fora → textContent sempre.',
+      },
+      {
+        tipo: 'code',
+        lang: 'js',
+        arquivo: 'script.js',
+        enunciado: 'Clicou, mudou — trocando o texto da página:',
+        contexto: 'O HTML já está no preview. Só o JS na sua mão.',
+        missao: 'ao clicar no botão, o h1 muda pra: Mudou, na moral!',
+        testa: '👆 clica no botão do preview!',
+        htmlBase: '<h1 id="titulo">Sem clique ainda</h1><button id="muda">Muda o título</button>',
+        starter: '// 1) pega o titulo (id titulo) e o botao (id muda)\n// 2) no clique, troca o texto do titulo pra: Mudou, na moral!\n\n',
+        esperado: ['Sem clique ainda', 'Mudou, na moral!'],
+        regras: [
+          { re: 'addEventListener', label: 'escutar clique', falta: "Escuta o clique do botão com addEventListener('click', ...)." },
+          { re: 'textContent|innerText|innerHTML', label: 'trocar texto', falta: "Troca o texto: titulo.textContent = 'Mudou, na moral!';" },
+        ],
+        dicas: [
+          "const titulo = document.querySelector('#titulo'); const botao = document.querySelector('#muda');",
+          "Dentro do listener: titulo.textContent = 'Mudou, na moral!';",
+        ],
+        gabarito: "const titulo = document.querySelector('#titulo');\nconst botao = document.querySelector('#muda');\n\nbotao.addEventListener('click', () => {\n  titulo.textContent = 'Mudou, na moral!';\n});",
+      },
+    ],
+  },
+  {
+    id: 'js-avancado',
+    nome: 'JS: modo avançado',
+    ponto: 'Berrini',
+    tag: 'PONTO 07',
+    desc: 'map, filter, desestruturação, spread e async/await.',
+    lessons: [
+      {
+        t: 'Arrays turbinados: map, filter, reduce',
+        txt: 'map TRANSFORMA cada item e devolve um array novo. filter PENEIRA: só passa quem cumpre a condição. reduce REDUZ tudo a um valor só (soma, total...). Nenhum deles altera o array original.',
+        code: 'const precos = [10, 25, 8];\nprecos.map(p => p * 2);      // [20, 50, 16]\nprecos.filter(p => p > 9);   // [10, 25]\nprecos.reduce((t, p) => t + p, 0); // 43',
+      },
+      {
+        t: 'Desestruturação e spread',
+        txt: 'Desestruturar é tirar valores de dentro de objeto/array direto pra variáveis. O spread (...) espalha: serve pra copiar e juntar sem mexer no original — você já viu ele no setState do React.',
+        code: "const { nome, idade } = pessoa;\nconst [primeiro] = lista;\n\nconst copia = { ...pessoa, cidade: 'SP' };",
+      },
+      {
+        t: 'Async: Promise e async/await',
+        txt: 'Buscar coisa na rede demora — a Promise representa esse valor futuro. Com async/await o código assíncrono fica LENDO como código normal: o await pausa ali até a resposta chegar.',
+        code: "async function carrega() {\n  const res = await fetch('/api/perfil');\n  const dados = await res.json();\n  console.log(dados.nome);\n}",
+      },
+    ],
+    desafios: [
+      {
+        tipo: 'quiz',
+        q: 'Diferença entre map e filter:',
+        opts: [
+          'map TRANSFORMA cada item; filter PENEIRA quem passa na condição',
+          'map remove itens; filter duplica',
+          'São iguais, filter é mais novo',
+          'filter só funciona com números',
+        ],
+        correct: 0,
+        explain: 'map devolve um array do MESMO tamanho com cada item transformado. filter devolve só os aprovados no teste. Os dois criam array novo.',
+      },
+      {
+        tipo: 'code',
+        lang: 'js',
+        arquivo: 'script.js',
+        enunciado: 'Filtra os corres que pagam bem:',
+        missao: 'do array de trampos, imprimir no console o NOME dos que pagam mais de 100 (na ordem do array).',
+        starter: "const trampos = [\n  { nome: 'Site da lanchonete', valor: 350 },\n  { nome: 'Ajuste no blog', valor: 80 },\n  { nome: 'Loja virtual', valor: 900 },\n];\n\n// filtra valor > 100 e imprime o nome de cada um\n\n",
+        esperado: ['Site da lanchonete', 'Loja virtual'],
+        regras: [
+          { re: '\\.filter\\(', label: '.filter()', falta: 'Peneira primeiro: trampos.filter(t => t.valor > 100)' },
+          { re: '\\.forEach\\(|\\.map\\(', label: 'percorrer', falta: 'Depois percorre imprimindo: .forEach(t => console.log(t.nome));' },
+        ],
+        dicas: [
+          'Dá pra encadear: trampos.filter(...).forEach(...)',
+          'Completo: trampos.filter(t => t.valor > 100).forEach(t => console.log(t.nome));',
+        ],
+        gabarito: "const trampos = [\n  { nome: 'Site da lanchonete', valor: 350 },\n  { nome: 'Ajuste no blog', valor: 80 },\n  { nome: 'Loja virtual', valor: 900 },\n];\n\ntrampos\n  .filter(t => t.valor > 100)\n  .forEach(t => console.log(t.nome));",
+      },
+      {
+        tipo: 'encaixe',
+        enunciado: 'Monta a função async que busca o perfil na API:',
+        pecas: [
+          'async function carregaPerfil() {',
+          "  const resposta = await fetch('/api/perfil');",
+          '  const dados = await resposta.json();',
+          '  console.log(dados.nome);',
+          '}',
+        ],
+        explain: 'async na função libera o await dentro. Primeiro espera a resposta chegar, depois espera o JSON ser lido, e aí usa o dado. Cada await é uma pausa.',
+      },
+      {
+        tipo: 'quiz',
+        q: 'Uma Promise é:',
+        opts: [
+          'Um tipo de loop',
+          'Um valor FUTURO: algo que ainda não chegou, mas vai chegar (ou falhar)',
+          'Uma variável global',
+          'Um erro do JavaScript',
+        ],
+        correct: 1,
+        explain: 'Ela representa uma operação em andamento (tipo um fetch). Quando resolve, o .then (ou o await) recebe o valor; quando falha, cai no catch.',
+      },
+      {
+        tipo: 'code',
+        lang: 'js',
+        arquivo: 'script.js',
+        enunciado: 'Desestruturação — abrindo o objeto:',
+        contexto: 'O objeto pessoa já existe (veio "da API"). Não precisa criar ele.',
+        missao: 'desestruturar nome e idade de dentro de pessoa e imprimir: Edu tem 25 anos',
+        preambulo: "const pessoa = { nome: 'Edu', idade: 25, quebrada: 'extremo sul' };",
+        starter: '// 1) tira nome e idade de dentro de pessoa (desestruturacao)\n// 2) imprime a frase no console com template string\n\n',
+        esperado: ['Edu tem 25 anos'],
+        regras: [
+          { re: '(const|let)\\s*\\{', label: 'desestruturação', falta: 'Desestrutura assim: const { nome, idade } = pessoa;' },
+          { re: '\\$\\{', label: 'template string', falta: 'Monta a frase com crase: `${nome} tem ${idade} anos`' },
+        ],
+        dicas: [
+          'const { nome, idade } = pessoa; — as chaves puxam as propriedades pelo nome.',
+          'console.log(`${nome} tem ${idade} anos`);',
+        ],
+        gabarito: 'const { nome, idade } = pessoa;\nconsole.log(`${nome} tem ${idade} anos`);',
+      },
+    ],
+  },
+  {
+    id: 'ts-mini',
+    nome: 'TypeScript: o mini corre',
+    ponto: 'Faria Lima',
+    tag: 'PONTO FINAL',
+    desc: 'Tipos, interfaces e funções tipadas — a base do TS.',
+    lessons: [
+      {
+        t: 'Por que TypeScript?',
+        txt: 'TypeScript é o JavaScript + TIPOS: tudo que você sabe de JS vale. O TS confere os tipos ANTES de rodar e pega erro bobo na hora de escrever (não na produção). No final ele compila pra JS puro — é JS que vai pro navegador.',
+        code: "let saldo: number = 150;\nsaldo = 'muito';\n// Erro: Type 'string' is not\n// assignable to type 'number'",
+      },
+      {
+        t: 'Tipos básicos: a anotação',
+        txt: 'A anotação vai depois do nome, com dois pontos: string, number, boolean, e arrays com tipo[]. Na maioria das vezes o TS INFERE sozinho pelo valor — mas saber anotar é a base.',
+        code: "const nome: string = 'Edu';\nconst idade: number = 25;\nconst ativo: boolean = true;\nconst notas: number[] = [8, 9, 10];",
+      },
+      {
+        t: 'Interface e função tipada',
+        txt: 'interface descreve a CARA de um objeto: quais propriedades e de que tipo. Em função, você tipa os parâmetros e o retorno — quem chamar errado é avisado na hora. O ? marca propriedade opcional.',
+        code: 'interface Produto {\n  nome: string;\n  preco: number;\n  desconto?: number; // opcional\n}\n\nfunction total(p: Produto): number {\n  return p.preco - (p.desconto || 0);\n}',
+      },
+    ],
+    desafios: [
+      {
+        tipo: 'quiz',
+        q: 'O que é TypeScript?',
+        opts: [
+          'Uma linguagem que substitui o JavaScript no navegador',
+          'Um superset do JS: adiciona tipos e compila pra JavaScript puro',
+          'Um framework tipo React',
+          'Um banco de dados tipado',
+        ],
+        correct: 1,
+        explain: 'Todo JS válido é TS válido. O TS adiciona a camada de tipos, confere tudo em tempo de escrita, e no build vira JS normal.',
+      },
+      {
+        tipo: 'code',
+        lang: 'ts',
+        arquivo: 'main.ts',
+        enunciado: 'Primeiras variáveis TIPADAS:',
+        contexto: 'TypeScript rodando de verdade: os tipos são conferidos e depois removidos na compilação — o que executa no navegador é JS puro.',
+        missao: 'declarar nome (com anotação : string) e idade (com anotação : number), e imprimir: Edu tem 25 anos',
+        starter: '// 1) const nome com anotacao de tipo texto, valendo "Edu"\n// 2) const idade com anotacao de tipo numero, valendo 25\n// 3) console.log da frase com template string\n\n',
+        esperado: ['Edu tem 25 anos'],
+        regras: [
+          { re: ':\\s*string', label: ': string', falta: "A anotação vai depois do nome: const nome: string = 'Edu';" },
+          { re: ':\\s*number', label: ': number', falta: 'Idade é número: const idade: number = 25;' },
+          { re: '\\$\\{', label: 'template string', falta: 'A frase: `${nome} tem ${idade} anos` — com crase.' },
+        ],
+        dicas: [
+          'Formato: const variavel: tipo = valor;',
+          "Completo: const nome: string = 'Edu'; const idade: number = 25;",
+        ],
+        gabarito: "const nome: string = 'Edu';\nconst idade: number = 25;\nconsole.log(`${nome} tem ${idade} anos`);",
+      },
+      {
+        tipo: 'encaixe',
+        enunciado: 'Monta a interface Produto — o contrato do objeto:',
+        pecas: [
+          'interface Produto {',
+          '  nome: string;',
+          '  preco: number;',
+          '  emEstoque: boolean;',
+          '}',
+        ],
+        explain: 'interface + nome + chaves, e dentro cada propriedade com seu tipo. Qualquer objeto que se diga Produto vai ter que ter essa cara.',
+      },
+      {
+        tipo: 'code',
+        lang: 'ts',
+        arquivo: 'main.ts',
+        enunciado: 'Função tipada de ponta a ponta:',
+        missao: 'criar precoComDesconto com os DOIS parâmetros tipados como number e o RETORNO tipado como number, devolvendo preco - desconto. Imprime o resultado pra 120 com desconto 30 — sai 90.',
+        starter: '// 1) function precoComDesconto(preco, desconto) - tipa os dois parametros e o retorno\n// 2) devolve preco menos desconto\n// 3) imprime no console o resultado pra 120 e 30\n\n',
+        esperado: ['90'],
+        regras: [
+          { re: 'preco\\s*:\\s*number', label: 'parâmetro tipado', falta: 'Tipa o parâmetro: (preco: number, desconto: number)' },
+          { re: '\\)\\s*:\\s*number', label: 'retorno tipado', falta: 'O tipo do retorno vai DEPOIS dos parênteses: function f(...): number { ... }' },
+          { re: 'return', label: 'return', falta: 'Devolve a conta: return preco - desconto;' },
+        ],
+        dicas: [
+          'Assinatura completa: function precoComDesconto(preco: number, desconto: number): number',
+          'E embaixo: console.log(precoComDesconto(120, 30));',
+        ],
+        gabarito: 'function precoComDesconto(preco: number, desconto: number): number {\n  return preco - desconto;\n}\n\nconsole.log(precoComDesconto(120, 30));',
+      },
+      {
+        tipo: 'quiz',
+        q: 'O que acontece com os tipos quando o TypeScript compila?',
+        opts: [
+          'Vão junto e o navegador confere em tempo real',
+          'São REMOVIDOS: o que roda é JavaScript puro — os tipos só existem em tempo de desenvolvimento',
+          'Viram comentários no código final',
+          'São enviados pro servidor validar',
+        ],
+        correct: 1,
+        explain: 'Os tipos são a rede de segurança de quem ESCREVE o código. Na compilação eles somem — o navegador só conhece JavaScript.',
+      },
+    ],
+  },
+];
+
+/* ---------- AS LINHAS (cursos disponíveis) ---------- */
+
+const CURSOS = [
+  {
+    id: 'fullstack',
+    rota: 'LINHA 5X-SUL · SENTIDO FULLSTACK',
+    titulo: 'React + Java',
+    sub: 'do zero ao deploy fullstack',
+    desc: 'React no front, Java + Spring no back. Sete pontos do Terminal Varginha até a Faria Lima, terminando com front e back conversando.',
+    finalTxt: 'Agora é abrir o VS Code e o IntelliJ e construir o app de verdade. 🚀',
+    modules: MODULES_FULLSTACK,
+  },
+  {
+    id: 'web',
+    rota: 'LINHA 6X-SUL · SENTIDO WEB',
+    titulo: 'HTML + CSS + JS',
+    sub: 'do básico ao avançado · + TypeScript',
+    desc: 'A base da web inteira, do zero: HTML, CSS e JavaScript até o modo avançado — e um mini módulo de TypeScript de bônus no ponto final.',
+    finalTxt: 'HTML, CSS, JS e até TypeScript no currículo. Agora é abrir o VS Code e construir teus próprios sites. 🚀',
+    modules: MODULES_WEB,
   },
 ];
