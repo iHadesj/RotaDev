@@ -26,7 +26,7 @@ const CURSO_KEY = "dev_do_corre_curso_v1";
 
 const TEMAS = [
   { id: "padrao", nome: "5X-Sul (claro)", cor: "#FF4D00", papel: "#EFE9DC" },
-  { id: "noite", nome: "Noite (escuro)", cor: "#FF5C14", papel: "#131318" },
+  { id: "noite", nome: "Noite (escuro)", cor: "#FF6A26", papel: "#131318" },
   { id: "vapor", nome: "Vapor (rosa)", cor: "#FF2E88", papel: "#FBE8EF" },
   { id: "taxi", nome: "Táxi (amarelo)", cor: "#FFB800", papel: "#F5F1DC" },
 ];
@@ -759,14 +759,14 @@ const CSS = String.raw`
   text-transform: uppercase; letter-spacing: 1px; font-size: 15px;
   border: 3px solid var(--tinta); border-radius: 0;
   padding: 14px 18px; cursor: pointer; width: 100%;
-  background: var(--branco); color: var(--contraste);
+  background: var(--branco); color: var(--tinta);
   box-shadow: 5px 5px 0 var(--tinta);
   transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
 .btn:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; }
-.btn-laranja { background: var(--laranja); }
+.btn-laranja { background: var(--laranja); color: var(--contraste); }
 .btn-azul { background: var(--azul); color: #fff; }
-.btn-lima { background: var(--lima); }
+.btn-lima { background: var(--lima); color: var(--contraste); }
 .btn-fantasma {
   background: var(--papel); color: var(--tinta);
   border-width: 2px; box-shadow: none;
@@ -862,7 +862,7 @@ const CSS = String.raw`
 .card { background: var(--branco); border: 3px solid var(--tinta); box-shadow: 6px 6px 0 var(--tinta); padding: 18px 16px; margin: 16px 0; }
 .card-titulo {
   font-family: 'Archivo Black', sans-serif; font-size: 20px;
-  margin: 0; text-transform: uppercase; color: var(--tinta); line-height: 1.4;
+  margin: 0; text-transform: uppercase; color: var(--contraste); line-height: 1.4;
   background: var(--lima); display: inline; padding: 0 4px;
   box-decoration-break: clone; -webkit-box-decoration-break: clone;
 }
@@ -1076,28 +1076,40 @@ const CSS = String.raw`
 .parada-dot--feito, .parada-dot--atual { color: var(--contraste); }
 .card--cor, .card--cor .card-txt, .card--cor .card-titulo, .card--cor .placar, .card--cor .placar-sub { color: var(--contraste); }
 
-/* Noite — modo escuro */
+/* Noite — modo escuro
+   Paleta calibrada pra contraste AA: texto secundário mais claro,
+   azul mais luminoso (era ilegível em texto pequeno) e textura
+   de fundo bem mais discreta pra não brigar com o conteúdo. */
 .ddc--noite {
   --papel: #131318;
-  --tinta: #F2EFE4;
+  --tinta: #F7F4EA;
   --branco: #1E1E26;
   --preto: #0B0B0F;
-  --laranja: #FF5C14;
-  --lima: #B8F53C;
-  --azul: #7A7AFF;
-  --vermelho: #FF5C4D;
-  --salmao: #FF9C86;
-  --cinza: #8F8B80;
-  --amarelo-claro: #33301E;
+  --laranja: #FF6A26;
+  --lima: #C3F851;
+  --azul: #9D9DFF;
+  --vermelho: #FF7A6E;
+  --salmao: #FFA894;
+  --cinza: #ABA69A;
+  --amarelo-claro: #34301D;
   --creme: #26251C;
-  --tracinho: #3A3A44;
-  --lint-erro: #FF9B90;
-  --lint-aviso: #FFC46B;
-  --lint-dica: #E5DC9A;
-  --textura-linha: rgba(242, 239, 228, 0.12);
-  --textura-ponto: rgba(242, 239, 228, 0.13);
-  --textura-luz: rgba(255, 255, 255, 0.05);
+  --tracinho: #45454F;
+  --lint-erro: #FFA49B;
+  --lint-aviso: #FFCC7A;
+  --lint-dica: #EAE2A6;
+  --textura-linha: rgba(242, 239, 228, 0.055);
+  --textura-ponto: rgba(242, 239, 228, 0.06);
+  --textura-luz: rgba(255, 255, 255, 0.03);
 }
+
+/* ajustes pontuais do Noite: onde texto claro/escuro precisa inverter */
+.ddc--noite .btn-azul { color: var(--contraste); }
+.ddc--noite .painel--azul .painel-titulo { color: var(--contraste); }
+.ddc--noite .painel--erro .painel-titulo { color: var(--contraste); }
+.ddc--noite .parada-dot { box-shadow: 3px 3px 0 rgba(247, 244, 234, 0.35); }
+.ddc--noite .peca { box-shadow: 3px 3px 0 #45454F; border-color: #2E2E38; }
+.ddc--noite .editor-nums { color: #8F8B80; border-right-color: #2E2E38; }
+.ddc--noite .terminal { border-top-color: #2E2E38; }
 
 /* Vapor — rosa/roxo/menta */
 .ddc--vapor {
