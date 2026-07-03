@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useId } from 'react';
+import { motion, AnimatePresence, MotionConfig, LayoutGroup } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
 /* =====================================================================
    DEV DO CORRE v2 — do extremo sul até a Faria Lima
@@ -26,6 +28,66 @@ function getLevel(xp) {
   const idx = LEVELS.indexOf(atual);
   const prox = LEVELS[idx + 1] || null;
   return { ...atual, prox };
+}
+
+/* ---------- animações (framer-motion + confete) ---------- */
+
+const springMedio = { type: 'spring', stiffness: 420, damping: 30 };
+
+const telaVariants = {
+  inicial: { opacity: 0, x: 40 },
+  entra: { opacity: 1, x: 0, transition: { duration: 0.28, ease: 'easeOut' } },
+  sai: { opacity: 0, x: -40, transition: { duration: 0.18, ease: 'easeIn' } },
+};
+
+const listaStagger = {
+  entra: { transition: { staggerChildren: 0.07, delayChildren: 0.08 } },
+};
+
+const itemSobe = {
+  inicial: { opacity: 0, y: 18 },
+  entra: { opacity: 1, y: 0, transition: springMedio },
+};
+
+const itemLado = {
+  inicial: { opacity: 0, x: -28 },
+  entra: { opacity: 1, x: 0, transition: springMedio },
+};
+
+const CORES_CONFETE = ['#FF4D00', '#B8F53C', '#2B2BFF', '#0D0D0D', '#FFF3B0'];
+
+function estouraConfete(opts = {}) {
+  confetti({
+    particleCount: 90,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors: CORES_CONFETE,
+    disableForReducedMotion: true,
+    ...opts,
+  });
+}
+
+function chuvaDeConfete() {
+  estouraConfete({ particleCount: 140, spread: 100, origin: { y: 0.5 } });
+  setTimeout(() => estouraConfete({ particleCount: 80, angle: 60, spread: 60, origin: { x: 0, y: 0.75 } }), 250);
+  setTimeout(() => estouraConfete({ particleCount: 80, angle: 120, spread: 60, origin: { x: 1, y: 0.75 } }), 450);
+}
+
+// contagem animada pro placar do resultado
+function useContagem(alvo, dur = 900) {
+  const [valor, setValor] = useState(0);
+  useEffect(() => {
+    let raf;
+    const t0 = performance.now();
+    function tick(t) {
+      const p = Math.min(1, (t - t0) / dur);
+      setValor(Math.round(alvo * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [alvo, dur]);
+  return valor;
 }
 
 /* ============================ UTILS ============================ */
@@ -228,10 +290,10 @@ function montaSrcDoc(codigo, preambulo) {
     '<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></' + 'script>',
     '<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></' + 'script>',
     '<style>',
-    'body{font-family:system-ui,-apple-system,sans-serif;background:#ffffff;color:#17171c;padding:14px;margin:0;font-size:15px}',
-    'button{font-size:15px;padding:8px 14px;border-radius:8px;border:2px solid #17171c;background:#ffd23f;cursor:pointer;font-weight:700}',
-    'button:active{transform:translateY(1px)}',
-    'input{font-size:15px;padding:8px 10px;border-radius:8px;border:2px solid #9a98ac}',
+    'body{font-family:system-ui,-apple-system,sans-serif;background:#ffffff;color:#0D0D0D;padding:14px;margin:0;font-size:15px}',
+    'button{font-size:15px;padding:8px 14px;border-radius:0;border:2px solid #0D0D0D;background:#FF4D00;cursor:pointer;font-weight:700}',
+    'button:active{transform:translate(1px,1px)}',
+    'input{font-size:15px;padding:8px 10px;border-radius:0;border:2px solid #0D0D0D}',
     'ul{padding-left:22px} li{margin:4px 0} h1,h2{margin:6px 0}',
     '</style></head><body><div id="root"></div>',
     '<script>',
@@ -605,6 +667,71 @@ const CSS = String.raw`
 }
 .link-reset:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
 
+/* ---------- animações ---------- */
+
+/* letreiro: rota rolando feito painel de busão + cursor piscando */
+.letreiro-rota { overflow: hidden; }
+.letreiro-rota-texto { display: inline-block; white-space: nowrap; animation: ddc-marquee 16s linear infinite; }
+@keyframes ddc-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.cursor-bloco {
+  display: inline-block; width: 0.42em; height: 0.78em;
+  background: var(--laranja); margin-left: 8px;
+  animation: ddc-pisca 1s steps(2, start) infinite;
+}
+@keyframes ddc-pisca { to { visibility: hidden; } }
+
+/* listras da XP em movimento */
+.xp-fill { animation: ddc-listras 0.8s linear infinite; }
+@keyframes ddc-listras { to { background-position: 14.14px 0; } }
+
+/* botões: hover afunda um pouco, active afunda tudo */
+.btn:not(:disabled):hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--tinta); }
+.btn-fantasma:not(:disabled):hover { transform: translate(1px, 1px); box-shadow: none; }
+.btn:not(:disabled):active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--tinta); }
+.btn-fantasma:not(:disabled):active { transform: translate(2px, 2px); }
+
+/* CTA da home respirando */
+.btn-pulsa { animation: ddc-chama 1.6s ease-in-out infinite; }
+@keyframes ddc-chama {
+  0%, 100% { box-shadow: 5px 5px 0 var(--tinta); }
+  50% { box-shadow: 9px 9px 0 var(--tinta); }
+}
+
+/* erro treme, acerto dá um pulo */
+.opt--shake { animation: ddc-treme 0.4s ease; }
+.painel--erro { animation: ddc-treme 0.4s ease; }
+@keyframes ddc-treme {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+.opt--pula { animation: ddc-pula 0.45s ease; }
+@keyframes ddc-pula {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* trilha desce desenhando a linha; parada concluída dá um pulo */
+.trilha::before { transform-origin: top; animation: ddc-desce 0.9s ease-out; }
+@keyframes ddc-desce { from { transform: scaleY(0); } }
+.parada-dot--feito { animation: ddc-pula 0.45s ease; }
+
+/* troféu e fogo do streak */
+.trofeu { animation: ddc-trofeu 1.6s ease-in-out infinite; }
+@keyframes ddc-trofeu {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-8px) rotate(4deg); }
+}
+.quiz-streak { display: inline-block; animation: ddc-fogo 0.7s ease-in-out infinite; }
+@keyframes ddc-fogo {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  50% { transform: scale(1.15) rotate(2deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ddc *, .ddc *::before, .ddc *::after { animation: none !important; transition: none !important; }
 }
@@ -650,11 +777,23 @@ function calcXP(scores) {
 
 function Letreiro({ rota, destino, sub, mini }) {
   return (
-    <div className={'letreiro' + (mini ? ' letreiro--mini' : '')}>
-      {rota && <p className="letreiro-rota">{rota}</p>}
-      <p className="letreiro-dest">{destino}</p>
+    <motion.div
+      className={'letreiro' + (mini ? ' letreiro--mini' : '')}
+      initial={{ opacity: 0, y: -16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={springMedio}
+    >
+      {rota && (
+        <p className="letreiro-rota">
+          <span className="letreiro-rota-texto">
+            <span>{rota}&nbsp;&nbsp;+++&nbsp;&nbsp;</span>
+            <span aria-hidden="true">{rota}&nbsp;&nbsp;+++&nbsp;&nbsp;</span>
+          </span>
+        </p>
+      )}
+      <p className="letreiro-dest">{destino}<span className="cursor-bloco" aria-hidden="true" /></p>
       {sub && <p className="letreiro-sub">{sub}</p>}
-    </div>
+    </motion.div>
   );
 }
 
@@ -666,7 +805,14 @@ function XPBar({ xp }) {
   return (
     <div className="xp-wrap">
       <div className="xp-top">
-        <span className="xp-nivel">{nivel.nome}</span>
+        <motion.span
+          key={nivel.nome}
+          className="xp-nivel"
+          initial={{ scale: 1.5, rotate: -3 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={springMedio}
+          style={{ display: 'inline-block' }}
+        >{nivel.nome}</motion.span>
         <span className="xp-pts">{xp} XP{nivel.prox ? ' · próx: ' + nivel.prox.min : ' · máx'}</span>
       </div>
       <div className="xp-bar"><div className="xp-fill" style={{ width: pct + '%' }} /></div>
@@ -681,10 +827,16 @@ function PainelLint({ itens }) {
     <div className="painel">
       <div className="painel-titulo"><span>Lint amigável</span><span>{itens.length} ponto(s)</span></div>
       {itens.map((it, i) => (
-        <div key={i} className={'lint-item lint-' + it.nivel}>
+        <motion.div
+          key={i}
+          className={'lint-item lint-' + it.nivel}
+          initial={{ opacity: 0, x: -14 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ ...springMedio, delay: i * 0.06 }}
+        >
           <span className="lint-emoji">{icone[it.nivel] || '💡'}</span>
           <span>{it.msg}</span>
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -743,36 +895,52 @@ function DesafioQuiz({ d, onResolvido }) {
   const respondeu = sel !== null;
   const acertou = respondeu && sel === d.correct;
 
+  useEffect(() => {
+    if (acertou) estouraConfete({ particleCount: 45, spread: 60, origin: { y: 0.75 } });
+  }, [acertou]);
+
   return (
     <div className="card">
       <p className="quiz-q">{d.q}</p>
       {d.code && <code className="code">{d.code}</code>}
-      <div className="opts">
+      <motion.div className="opts" variants={listaStagger} initial="inicial" animate="entra">
         {d.opts.map((o, idx) => {
           let cls = 'opt';
           if (respondeu) {
-            if (idx === d.correct) cls += ' opt--certa';
-            else if (idx === sel) cls += ' opt--errada';
+            if (idx === d.correct) cls += ' opt--certa opt--pula';
+            else if (idx === sel) cls += ' opt--errada opt--shake';
             else cls += ' opt--apagada';
           }
           return (
-            <button key={idx} className={cls} disabled={respondeu} onClick={() => setSel(idx)}>
+            <motion.button
+              key={idx}
+              className={cls}
+              disabled={respondeu}
+              onClick={() => setSel(idx)}
+              variants={itemSobe}
+              whileTap={{ scale: 0.98 }}
+            >
               <span className="opt-letra">{LETRAS[idx]}</span>
               <span>{o}</span>
-            </button>
+            </motion.button>
           );
         })}
-      </div>
+      </motion.div>
       {respondeu && (
-        <div className={'feedback ' + (acertou ? 'feedback--ok' : 'feedback--ruim')}>
+        <motion.div
+          className={'feedback ' + (acertou ? 'feedback--ok' : 'feedback--ruim')}
+          initial={{ opacity: 0, y: 16, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={springMedio}
+        >
           <p className="feedback-titulo">{acertou ? 'Boa, acertou! ✅' : 'Não foi dessa vez ❌'}</p>
           <p className="feedback-txt">{d.explain}</p>
-        </div>
+        </motion.div>
       )}
       {respondeu && (
-        <div className="stack">
-          <button className="btn btn-amarelo" onClick={() => onResolvido(acertou)}>Próxima →</button>
-        </div>
+        <motion.div className="stack" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <button className="btn btn-laranja" onClick={() => onResolvido(acertou)}>Próxima →</button>
+        </motion.div>
       )}
     </div>
   );
@@ -781,6 +949,7 @@ function DesafioQuiz({ d, onResolvido }) {
 /* ============================ DESAFIO: ENCAIXE ============================ */
 
 function DesafioEncaixe({ d, onResolvido }) {
+  const grupoLayout = useId();
   const [banco, setBanco] = useState(() => embaralhaDiferente(d.pecas.map((p, i) => ({ p, k: i }))));
   const [monte, setMonte] = useState([]);
   const [res, setRes] = useState(null); // { ok, msg }
@@ -812,6 +981,7 @@ function DesafioEncaixe({ d, onResolvido }) {
     }
     if (primeiroErro === -1) {
       setRes({ ok: true, msg: d.explain });
+      estouraConfete({ particleCount: 60, spread: 70, origin: { y: 0.7 } });
     } else {
       setErros(e => e + 1);
       const certas = primeiroErro;
@@ -835,41 +1005,69 @@ function DesafioEncaixe({ d, onResolvido }) {
 
   return (
     <div className="card">
+      <LayoutGroup id={grupoLayout}>
       <p className="quiz-q">{d.enunciado}</p>
       <p className="encaixe-label">Seu código (toca numa peça pra devolver)</p>
-      <div className="encaixe-area">
+      <motion.div
+        className="encaixe-area"
+        animate={res && !res.ok ? 'erra' : 'calma'}
+        variants={{
+          erra: { x: [0, -8, 8, -6, 6, 0], transition: { duration: 0.4 } },
+          calma: { x: 0 },
+        }}
+      >
         {monte.length === 0 && <p className="encaixe-vazio">— vazio — toca nas peças aí de baixo pra montar aqui —</p>}
         {monte.map((item, i) => (
-          <button key={item.k} className="peca peca--monte" onClick={() => !montado && devolver(i)}>{item.p}</button>
+          <motion.button
+            key={item.k}
+            layoutId={'peca-' + item.k}
+            transition={springMedio}
+            whileTap={{ scale: 0.97 }}
+            className="peca peca--monte"
+            onClick={() => !montado && devolver(i)}
+          >{item.p}</motion.button>
         ))}
-      </div>
+      </motion.div>
       {banco.length > 0 && (
         <>
           <p className="encaixe-label">Peças embaralhadas (toca pra encaixar)</p>
           <div className="encaixe-banco">
             {banco.map((item, i) => (
-              <button key={item.k} className="peca" onClick={() => pegar(i)}>{item.p}</button>
+              <motion.button
+                key={item.k}
+                layoutId={'peca-' + item.k}
+                transition={springMedio}
+                whileTap={{ scale: 0.97 }}
+                className="peca"
+                onClick={() => pegar(i)}
+              >{item.p}</motion.button>
             ))}
           </div>
         </>
       )}
       {res && (
-        <div className={'feedback ' + (res.ok ? 'feedback--ok' : 'feedback--ruim')}>
+        <motion.div
+          className={'feedback ' + (res.ok ? 'feedback--ok' : 'feedback--ruim')}
+          initial={{ opacity: 0, y: 16, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={springMedio}
+        >
           <p className="feedback-titulo">{res.ok ? (usouGabarito ? 'Montado com o gabarito' : 'Encaixou perfeito! 🧩') : 'Quase lá...'}</p>
           <p className="feedback-txt">{res.msg}</p>
-        </div>
+        </motion.div>
       )}
       <div className="toolbar">
-        {!montado && <button className="btn btn-amarelo" onClick={conferir}>Conferir encaixe</button>}
+        {!montado && <button className="btn btn-laranja" onClick={conferir}>Conferir encaixe</button>}
         {!montado && erros >= 2 && (
           <button className="btn btn-fantasma" onClick={verGabarito}>Mostrar a ordem certa</button>
         )}
         {montado && (
-          <button className="btn btn-verde" onClick={() => onResolvido(!usouGabarito)}>
+          <button className="btn btn-lima" onClick={() => onResolvido(!usouGabarito)}>
             {usouGabarito ? 'Seguir (sem pontuar)' : 'Fechar desafio ✓'}
           </button>
         )}
       </div>
+      </LayoutGroup>
     </div>
   );
 }
@@ -915,6 +1113,10 @@ function DesafioCode({ d, onResolvido }) {
   }, [ehJava]);
 
   const completo = ehJava ? javaOk : (faltam !== null && faltam.length === 0);
+
+  useEffect(() => {
+    if (completo) estouraConfete({ particleCount: 70, spread: 80, origin: { y: 0.7 } });
+  }, [completo]);
 
   function rodar() {
     setTentativas(t => t + 1);
@@ -994,7 +1196,7 @@ function DesafioCode({ d, onResolvido }) {
       />
 
       <div className="toolbar">
-        <button className="btn btn-amarelo" onClick={rodar}>▶ Rodar</button>
+        <button className="btn btn-laranja" onClick={rodar}>▶ Rodar</button>
         {d.dicas && d.dicas.length > 0 && (
           <button className="btn btn-fantasma" onClick={() => setDicaIdx(i => Math.min(i + 1, d.dicas.length - 1))}>
             💡 Dica {dicaIdx >= 0 ? '(' + (dicaIdx + 1) + '/' + d.dicas.length + ')' : ''}
@@ -1006,25 +1208,31 @@ function DesafioCode({ d, onResolvido }) {
       </div>
 
       {dicaIdx >= 0 && (
-        <div className="missao" style={{ borderColor: 'var(--rosa)' }}>
-          <b style={{ color: 'var(--rosa)' }}>💡 Dica {dicaIdx + 1}:</b> {d.dicas[dicaIdx]}
-        </div>
+        <motion.div
+          key={dicaIdx}
+          className="missao missao--dica"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={springMedio}
+        >
+          <b style={{ color: 'var(--azul)' }}>💡 Dica {dicaIdx + 1}:</b> {d.dicas[dicaIdx]}
+        </motion.div>
       )}
 
       {verGab && (
-        <div className="painel">
+        <motion.div className="painel" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={springMedio}>
           <div className="painel-titulo"><span>Gabarito</span><span>faz parte do aprendizado</span></div>
           <code className="code" style={{ margin: 0, borderRadius: 0, borderLeft: 0, border: 0 }}>{d.gabarito}</code>
           <div style={{ padding: 10 }}>
             <button className="btn btn-fantasma" onClick={usarGabarito}>Colar no editor (não pontua, mas ensina)</button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       <PainelLint itens={lints} />
 
       {erros.length > 0 && (
-        <div className="painel">
+        <div className="painel painel--erro">
           <div className="painel-titulo"><span>Erro na execução</span><span>tradução amigável</span></div>
           {erros.map((e, i) => (
             <div key={i} className="lint-item lint-erro"><span className="lint-emoji">🚨</span><span>{e}</span></div>
@@ -1033,10 +1241,10 @@ function DesafioCode({ d, onResolvido }) {
       )}
 
       {!ehJava && src && (
-        <div className="painel">
+        <motion.div className="painel painel--azul" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springMedio}>
           <div className="painel-titulo">
             <span>Preview · rodando de verdade</span>
-            {d.testa && !completo && <span style={{ color: 'var(--amarelo)' }}>{d.testa}</span>}
+            {d.testa && !completo && <span style={{ color: 'var(--lima)' }}>{d.testa}</span>}
           </div>
           <iframe
             key={rodada}
@@ -1045,7 +1253,7 @@ function DesafioCode({ d, onResolvido }) {
             srcDoc={src}
             title="Preview do seu código React"
           />
-        </div>
+        </motion.div>
       )}
 
       {!ehJava && logs.length > 0 && (
@@ -1067,12 +1275,17 @@ function DesafioCode({ d, onResolvido }) {
 
       {completo && (
         <>
-          <div className="banner-ok">{ehJava ? 'Compilou sem erros! ✓' : 'Funcionou, confere na tela! 🎉'}</div>
-          <div className="stack">
-            <button className="btn btn-verde" onClick={() => onResolvido(!usouGabarito)}>
+          <motion.div
+            className="banner-ok"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={springMedio}
+          >{ehJava ? 'Compilou sem erros! ✓' : 'Funcionou, confere na tela! 🎉'}</motion.div>
+          <motion.div className="stack" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <button className="btn btn-lima" onClick={() => onResolvido(!usouGabarito)}>
               {usouGabarito ? 'Seguir (sem pontuar)' : 'Fechar desafio ✓'}
             </button>
-          </div>
+          </motion.div>
         </>
       )}
     </div>
@@ -1083,13 +1296,13 @@ function DesafioCode({ d, onResolvido }) {
 
 function TelaHome({ temProgresso, onStart }) {
   return (
-    <div>
+    <motion.div variants={listaStagger} initial="inicial" animate="entra">
       <Letreiro
         rota="LINHA 5X-SUL · SENTIDO FULLSTACK"
         destino={'DEV DO\nCORRE'}
         sub="React + Java · do zero ao deploy"
       />
-      <div className="card">
+      <motion.div className="card" variants={itemSobe}>
         <p className="card-txt">
           Sete pontos de busão entre o <strong>Terminal Varginha</strong> e a{' '}
           <strong>Faria Lima</strong>. Em cada parada: conceito rápido e desafios de
@@ -1098,14 +1311,14 @@ function TelaHome({ temProgresso, onStart }) {
           com um lint amigável que explica o erro em bom português (bem mais claro que o da IDE).
           Acertou 3 de 5, libera o próximo ponto.
         </p>
-      </div>
-      <div className="stack">
-        <button className="btn btn-amarelo" onClick={onStart}>
+      </motion.div>
+      <motion.div className="stack" variants={itemSobe}>
+        <button className="btn btn-laranja btn-pulsa" onClick={onStart}>
           {temProgresso ? 'Continuar o corre' : 'Começar o corre'}
         </button>
-      </div>
-      <p className="footer-note">Seu progresso fica salvo. Pode fechar e voltar depois, o busão te espera.</p>
-    </div>
+      </motion.div>
+      <motion.p className="footer-note" variants={itemSobe}>Seu progresso fica salvo. Pode fechar e voltar depois, o busão te espera.</motion.p>
+    </motion.div>
   );
 }
 
@@ -1113,20 +1326,25 @@ function TelaTrilha({ progresso, onAbrir, onReset }) {
   const xp = calcXP(progresso.scores);
   const completos = MODULES.filter(m => (progresso.scores[m.id] || 0) >= 3).length;
   const zerou = completos === MODULES.length;
+
+  useEffect(() => {
+    if (zerou) chuvaDeConfete();
+  }, [zerou]);
+
   return (
     <div>
       <Letreiro mini rota="Trilha da linha" destino="Escolhe seu ponto" />
       <XPBar xp={xp} />
-      <div className="trilha">
+      <motion.div className="trilha" variants={listaStagger} initial="inicial" animate="entra">
         {MODULES.map((m, i) => {
           const score = progresso.scores[m.id];
           const feito = (score || 0) >= 3;
           const liberado = i === 0 || (progresso.scores[MODULES[i - 1].id] || 0) >= 3;
           const atual = liberado && !feito;
           return (
-            <div className="parada" key={m.id}>
+            <motion.div className="parada" key={m.id} variants={itemLado}>
               <span className={'parada-dot' + (feito ? ' parada-dot--feito' : atual ? ' parada-dot--atual' : '')}>
-                {feito ? '✓' : i + 1}
+                {feito ? '✓' : String(i + 1).padStart(2, '0')}
               </span>
               <button className="parada-card" disabled={!liberado} onClick={() => onAbrir(i)}>
                 <span className="parada-tag">
@@ -1137,19 +1355,25 @@ function TelaTrilha({ progresso, onAbrir, onReset }) {
                 <p className="parada-local">📍 {m.ponto}</p>
                 <p className="parada-desc">{m.desc}</p>
               </button>
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
       {zerou && (
-        <div className="card" style={{ borderColor: 'var(--verde)' }}>
+        <motion.div
+          className="card"
+          style={{ background: 'var(--lima)' }}
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={springMedio}
+        >
           <p className="trofeu">🏆</p>
-          <p className="card-titulo" style={{ textAlign: 'center', color: 'var(--verde)' }}>Zerou a linha!</p>
+          <p className="card-titulo" style={{ display: 'block', textAlign: 'center', background: 'none' }}>Zerou a linha!</p>
           <p className="card-txt" style={{ textAlign: 'center' }}>
             Do Terminal Varginha até a Faria Lima: <strong>{getLevel(xp).nome}</strong> com {xp} XP.
             Agora é abrir o VS Code e o IntelliJ e construir o app de verdade. 🚀
           </p>
-        </div>
+        </motion.div>
       )}
       <p className="footer-note">
         Refazer um desafio atualiza sua melhor pontuação.{' '}
@@ -1167,17 +1391,27 @@ function TelaLicao({ modulo, onDesafio, onVoltar }) {
     <div>
       <Letreiro mini rota={modulo.tag + ' · ' + modulo.ponto} destino={modulo.nome} />
       <p className="pager">Conceito {i + 1} / {modulo.lessons.length}</p>
-      <div className="card">
-        <p className="card-titulo">{l.t}</p>
-        <p className="card-txt">{l.txt}</p>
-        {l.code && <code className="code">{l.code}</code>}
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, x: 32 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -32 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
+        >
+          <div className="card">
+            <p className="card-titulo">{l.t}</p>
+            <p className="card-txt">{l.txt}</p>
+            {l.code && <code className="code">{l.code}</code>}
+          </div>
+        </motion.div>
+      </AnimatePresence>
       <div className="stack">
         {!ultima && (
-          <button className="btn btn-amarelo" onClick={() => setI(i + 1)}>Próximo conceito →</button>
+          <button className="btn btn-laranja" onClick={() => setI(i + 1)}>Próximo conceito →</button>
         )}
         {ultima && (
-          <button className="btn btn-rosa" onClick={onDesafio}>Começar os desafios 🔥</button>
+          <button className="btn btn-azul" onClick={onDesafio}>Começar os desafios 🔥</button>
         )}
         {i > 0 && (
           <button className="btn btn-fantasma" onClick={() => setI(i - 1)}>← Voltar um conceito</button>
@@ -1212,12 +1446,38 @@ function TelaDesafios({ modulo, onFim, onVoltar }) {
       <Letreiro mini rota={modulo.tag + ' · desafios'} destino={modulo.nome} />
       <div className="quiz-topo">
         <span>Desafio {qi + 1} / {modulo.desafios.length}</span>
-        <span className="tipo-badge">{NOME_TIPO[d.tipo]}</span>
-        <span>✔ {acertos}{streak >= 2 && <span className="quiz-streak"> · 🔥x{streak}</span>}</span>
+        <motion.span
+          key={'badge-' + qi}
+          className="tipo-badge"
+          initial={{ scale: 1.4, rotate: -4 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={springMedio}
+          style={{ display: 'inline-block' }}
+        >{NOME_TIPO[d.tipo]}</motion.span>
+        <span>
+          <motion.span
+            key={'pts-' + acertos}
+            initial={{ scale: 1.6 }}
+            animate={{ scale: 1 }}
+            transition={springMedio}
+            style={{ display: 'inline-block' }}
+          >✔ {acertos}</motion.span>
+          {streak >= 2 && <span className="quiz-streak"> · 🔥x{streak}</span>}
+        </span>
       </div>
-      {d.tipo === 'quiz' && <DesafioQuiz key={qi} d={d} onResolvido={resolvido} />}
-      {d.tipo === 'encaixe' && <DesafioEncaixe key={qi} d={d} onResolvido={resolvido} />}
-      {d.tipo === 'code' && <DesafioCode key={qi} d={d} onResolvido={resolvido} />}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={qi}
+          initial={{ opacity: 0, x: 36 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -36 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
+        >
+          {d.tipo === 'quiz' && <DesafioQuiz d={d} onResolvido={resolvido} />}
+          {d.tipo === 'encaixe' && <DesafioEncaixe d={d} onResolvido={resolvido} />}
+          {d.tipo === 'code' && <DesafioCode d={d} onResolvido={resolvido} />}
+        </motion.div>
+      </AnimatePresence>
       <div className="stack">
         <button className="btn btn-fantasma" onClick={onVoltar}>Abandonar (volta pra trilha)</button>
       </div>
@@ -1228,6 +1488,15 @@ function TelaDesafios({ modulo, onFim, onVoltar }) {
 function TelaResultado({ modulo, score, xpGanho, ehUltimo, onRefazer, onTrilha }) {
   const total = modulo.desafios.length;
   const passou = score >= 3;
+  const scoreAnimado = useContagem(score);
+
+  useEffect(() => {
+    if (score === total) chuvaDeConfete();
+    else if (passou) estouraConfete();
+    // dispara uma vez, na entrada da tela
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   let msg;
   if (score === total) msg = 'GABARITOU! 💛';
   else if (score >= 4) msg = 'Mandou muito bem!';
@@ -1236,10 +1505,23 @@ function TelaResultado({ modulo, score, xpGanho, ehUltimo, onRefazer, onTrilha }
   return (
     <div>
       <Letreiro mini rota={modulo.tag + ' · resultado'} destino={modulo.ponto} />
-      <div className="card" style={{ borderColor: passou ? 'var(--verde)' : 'var(--vermelho)' }}>
-        <p className="placar">{score}/{total}</p>
+      <motion.div
+        className="card"
+        style={{ background: passou ? 'var(--lima)' : 'var(--salmao)' }}
+        initial={{ scale: 0.9, opacity: 0, y: 24 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={springMedio}
+      >
+        <p className="placar">{scoreAnimado}/{total}</p>
         <p className="placar-sub">{msg}</p>
-        {xpGanho > 0 && <p className="placar-sub" style={{ color: 'var(--amarelo)' }}>+{xpGanho} XP</p>}
+        {xpGanho > 0 && (
+          <motion.p
+            className="placar-xp"
+            initial={{ scale: 0, rotate: -6 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ ...springMedio, delay: 0.5 }}
+          >+{xpGanho} XP</motion.p>
+        )}
         {!passou && (
           <p className="card-txt" style={{ textAlign: 'center', marginTop: 12 }}>
             Precisa de 3 acertos pra liberar o próximo ponto. Revisa os conceitos e tenta de novo —
@@ -1251,9 +1533,9 @@ function TelaResultado({ modulo, score, xpGanho, ehUltimo, onRefazer, onTrilha }
             Último ponto concluído! Volta pra trilha pra ver seu troféu. 🏆
           </p>
         )}
-      </div>
+      </motion.div>
       <div className="stack">
-        <button className="btn btn-amarelo" onClick={onTrilha}>Voltar pra trilha</button>
+        <button className="btn btn-laranja" onClick={onTrilha}>Voltar pra trilha</button>
         <button className="btn btn-fantasma" onClick={onRefazer}>Refazer (revisa e tenta de novo)</button>
       </div>
     </div>
@@ -1308,9 +1590,12 @@ export default function DevDoCorre() {
   const temProgresso = Object.keys(progresso.scores).length > 0;
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="ddc">
       <style>{CSS}</style>
       <div className="ddc-shell">
+        <AnimatePresence mode="wait">
+        <motion.div key={tela} variants={telaVariants} initial="inicial" animate="entra" exit="sai">
         {tela === 'carregando' && (
           <Letreiro rota="AGUARDE..." destino="Chamando o busão" sub="carregando seu progresso" />
         )}
@@ -1345,8 +1630,11 @@ export default function DevDoCorre() {
             onTrilha={() => setTela('trilha')}
           />
         )}
+        </motion.div>
+        </AnimatePresence>
       </div>
     </div>
+    </MotionConfig>
   );
 }
 
