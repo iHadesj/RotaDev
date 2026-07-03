@@ -13,6 +13,14 @@ import confetti from 'canvas-confetti';
    ===================================================================== */
 
 const STORAGE_KEY = 'dev_do_corre_v1';
+const TEMA_KEY = 'dev_do_corre_tema_v1';
+
+const TEMAS = [
+  { id: 'padrao', nome: '5X-Sul (claro)', cor: '#FF4D00', papel: '#EFE9DC' },
+  { id: 'noite', nome: 'Noite (escuro)', cor: '#FF5C14', papel: '#131318' },
+  { id: 'vapor', nome: 'Vapor (rosa)', cor: '#FF2E88', papel: '#FBE8EF' },
+  { id: 'taxi', nome: 'Táxi (amarelo)', cor: '#FFB800', papel: '#F5F1DC' },
+];
 
 const LEVELS = [
   { min: 0, nome: 'Estagiário do Corre' },
@@ -336,6 +344,13 @@ const CSS = String.raw`
   --salmao: #FFB3A7;
   --cinza: #6B6659;
   --amarelo-claro: #FFF3B0;
+  --preto: #0D0D0D;        /* superfícies escuras (código, terminal, barras) */
+  --contraste: #0D0D0D;    /* texto sobre cores de destaque (laranja, lima...) */
+  --creme: #FFFBEA;
+  --tracinho: #C9C2B0;
+  --lint-erro: #B3261E;
+  --lint-aviso: #8A5A00;
+  --lint-dica: #4A4400;
 
   min-height: 100vh;
   background: var(--papel);
@@ -356,7 +371,7 @@ const CSS = String.raw`
   box-shadow: 10px 10px 0 var(--tinta);
 }
 .letreiro-rota {
-  background: var(--tinta);
+  background: var(--preto);
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px; letter-spacing: 3px;
   color: var(--laranja); margin: 0; padding: 9px 16px;
@@ -372,7 +387,7 @@ const CSS = String.raw`
   background: var(--lima);
   border-top: 4px solid var(--tinta);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; letter-spacing: 2px; color: var(--tinta);
+  font-size: 11px; letter-spacing: 2px; color: var(--contraste);
   margin: 0; padding: 8px 16px; text-transform: uppercase;
 }
 .letreiro--mini { box-shadow: 8px 8px 0 var(--tinta); }
@@ -385,7 +400,7 @@ const CSS = String.raw`
   text-transform: uppercase; letter-spacing: 1px; font-size: 15px;
   border: 3px solid var(--tinta); border-radius: 0;
   padding: 14px 18px; cursor: pointer; width: 100%;
-  background: var(--branco); color: var(--tinta);
+  background: var(--branco); color: var(--contraste);
   box-shadow: 5px 5px 0 var(--tinta);
   transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
@@ -412,7 +427,7 @@ const CSS = String.raw`
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
   text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; gap: 8px;
 }
-.xp-nivel { background: var(--lima); border: 2px solid var(--tinta); padding: 2px 8px; font-weight: 700; }
+.xp-nivel { background: var(--lima); border: 2px solid var(--tinta); padding: 2px 8px; font-weight: 700; color: var(--contraste); }
 .xp-pts { color: var(--cinza); }
 .xp-bar { height: 16px; background: var(--papel); border: 2px solid var(--tinta); overflow: hidden; }
 .xp-fill {
@@ -461,7 +476,7 @@ const CSS = String.raw`
 .parada-nome { font-family: 'Archivo Black', sans-serif; font-size: 17px; margin: 6px 0 2px; text-transform: uppercase; line-height: 1.1; }
 .parada-local { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--laranja); font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
 .parada-desc { font-size: 13px; color: var(--cinza); margin: 0; line-height: 1.4; }
-.parada-score { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--tinta); background: var(--lima); padding: 0 5px; font-weight: 700; }
+.parada-score { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--contraste); background: var(--lima); padding: 0 5px; font-weight: 700; }
 
 /* ---------- cartões ---------- */
 .card { background: var(--branco); border: 3px solid var(--tinta); box-shadow: 6px 6px 0 var(--tinta); padding: 18px 16px; margin: 16px 0; }
@@ -475,7 +490,7 @@ const CSS = String.raw`
 .card-txt { font-size: 15px; line-height: 1.6; margin: 0; color: var(--tinta); }
 
 .code {
-  display: block; background: var(--tinta);
+  display: block; background: var(--preto);
   border-left: 6px solid var(--laranja);
   padding: 12px 14px; margin-top: 14px;
   font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.6;
@@ -518,7 +533,7 @@ const CSS = String.raw`
   border: 2px solid var(--tinta);
   padding: 3px 8px; color: var(--tinta); background: var(--branco); font-weight: 700;
 }
-.alvo--ok { background: var(--lima); }
+.alvo--ok { background: var(--lima); color: var(--contraste); }
 .alvo--ok::before { content: '✓ '; }
 
 .opts { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
@@ -537,23 +552,23 @@ const CSS = String.raw`
 .opt:disabled { cursor: default; }
 .opt-letra {
   font-family: 'Archivo Black', sans-serif; font-size: 12px;
-  background: var(--tinta); color: var(--branco);
+  background: var(--preto); color: #fff;
   min-width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.opt--certa { background: var(--lima); }
-.opt--errada { background: var(--salmao); }
+.opt--certa { background: var(--lima); color: var(--contraste); }
+.opt--errada { background: var(--salmao); color: var(--contraste); }
 .opt--apagada { opacity: 0.4; }
 
-.feedback { border: 3px solid var(--tinta); box-shadow: 4px 4px 0 var(--tinta); padding: 14px; margin-top: 16px; animation: sobe 0.25s ease; }
+.feedback { border: 3px solid var(--tinta); box-shadow: 4px 4px 0 var(--tinta); padding: 14px; margin-top: 16px; animation: sobe 0.25s ease; color: var(--contraste); }
 @keyframes sobe { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .feedback--ok { background: var(--lima); }
 .feedback--ruim { background: var(--salmao); }
-.feedback-titulo { font-family: 'Archivo Black', sans-serif; font-size: 15px; text-transform: uppercase; margin: 0 0 6px; color: var(--tinta); }
-.feedback-txt { font-size: 14px; line-height: 1.55; margin: 0; color: var(--tinta); }
+.feedback-titulo { font-family: 'Archivo Black', sans-serif; font-size: 15px; text-transform: uppercase; margin: 0 0 6px; color: inherit; }
+.feedback-txt { font-size: 14px; line-height: 1.55; margin: 0; color: inherit; }
 
 /* ---------- editor de código ---------- */
-.editor { border: 3px solid var(--tinta); overflow: hidden; background: var(--tinta); margin-top: 14px; box-shadow: 5px 5px 0 var(--tinta); }
+.editor { border: 3px solid var(--tinta); overflow: hidden; background: var(--preto); margin-top: 14px; box-shadow: 5px 5px 0 var(--tinta); }
 .editor-topo {
   display: flex; align-items: center; gap: 8px;
   background: var(--laranja); padding: 8px 10px; border-bottom: 3px solid var(--tinta);
@@ -562,13 +577,13 @@ const CSS = String.raw`
 .d1 { background: var(--tinta); } .d2 { background: var(--branco); } .d3 { background: var(--lima); }
 .editor-arquivo {
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  color: var(--tinta); margin-left: 6px; letter-spacing: 1px; font-weight: 700;
+  color: var(--contraste); margin-left: 6px; letter-spacing: 1px; font-weight: 700;
 }
 .editor-corpo { display: flex; align-items: stretch; }
 .editor-nums {
   margin: 0; padding: 12px 8px; font-family: 'JetBrains Mono', monospace;
-  font-size: 13px; line-height: 1.55; color: #6B6659; text-align: right;
-  user-select: none; background: var(--tinta); border-right: 1px solid #2a2a2a;
+  font-size: 13px; line-height: 1.55; color: var(--cinza); text-align: right;
+  user-select: none; background: var(--preto); border-right: 1px solid #2a2a2a;
   min-width: 36px; overflow: hidden;
 }
 .editor-ta {
@@ -584,7 +599,7 @@ const CSS = String.raw`
 .painel-titulo {
   font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px;
   text-transform: uppercase; padding: 7px 10px;
-  background: var(--tinta); color: var(--branco);
+  background: var(--preto); color: #fff;
   display: flex; justify-content: space-between; gap: 8px; align-items: center;
 }
 .painel--azul .painel-titulo { background: var(--azul); }
@@ -592,7 +607,7 @@ const CSS = String.raw`
 .painel--erro .painel-titulo { background: var(--vermelho); }
 .preview-frame { width: 100%; height: 260px; border: 0; background: #fff; display: block; }
 .terminal {
-  background: var(--tinta); font-family: 'JetBrains Mono', monospace;
+  background: var(--preto); font-family: 'JetBrains Mono', monospace;
   font-size: 12.5px; color: var(--lima); padding: 12px;
   min-height: 44px; white-space: pre-wrap; word-break: break-word; margin: 0;
   border-top: 1px solid #2a2a2a;
@@ -602,19 +617,19 @@ const CSS = String.raw`
 .lint-item {
   display: flex; gap: 8px; padding: 10px 12px;
   font-size: 13.5px; line-height: 1.5;
-  border-bottom: 1px dashed #C9C2B0; align-items: flex-start;
+  border-bottom: 1px dashed var(--tracinho); align-items: flex-start;
 }
 .lint-item:last-child { border-bottom: 0; }
-.lint-erro { color: #B3261E; }
-.lint-aviso { color: #8A5A00; }
-.lint-dica { color: #4A4400; }
+.lint-erro { color: var(--lint-erro); }
+.lint-aviso { color: var(--lint-aviso); }
+.lint-dica { color: var(--lint-dica); }
 .lint-emoji { flex-shrink: 0; }
 
 .banner-ok {
   border: 3px solid var(--tinta); background: var(--lima);
   box-shadow: 4px 4px 0 var(--tinta);
   padding: 13px; margin-top: 14px;
-  font-family: 'Archivo Black', sans-serif; color: var(--tinta);
+  font-family: 'Archivo Black', sans-serif; color: var(--contraste);
   text-transform: uppercase; text-align: center; font-size: 15px;
   animation: sobe 0.25s ease;
 }
@@ -628,12 +643,12 @@ const CSS = String.raw`
 .encaixe-area {
   min-height: 56px; border: 3px dashed var(--tinta);
   padding: 8px; display: flex; flex-direction: column; gap: 6px;
-  background: #FFFBEA;
+  background: var(--creme);
 }
 .encaixe-banco { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .peca {
   text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
-  background: var(--tinta); border: 3px solid var(--tinta); color: var(--branco);
+  background: var(--preto); border: 3px solid var(--preto); color: #fff;
   padding: 10px 12px; cursor: pointer;
   white-space: pre; overflow-x: auto; width: 100%;
   box-shadow: 3px 3px 0 var(--cinza);
@@ -654,7 +669,7 @@ const CSS = String.raw`
 .placar-xp {
   text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 13px;
   letter-spacing: 2px; text-transform: uppercase; margin: 6px auto 0;
-  background: var(--tinta); color: var(--lima); display: table; padding: 3px 10px;
+  background: var(--preto); color: var(--lima); display: table; padding: 3px 10px;
 }
 .trofeu { font-size: 56px; text-align: center; margin: 10px 0 0; }
 .stack { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
@@ -666,6 +681,72 @@ const CSS = String.raw`
   text-decoration: underline; padding: 2px 4px;
 }
 .link-reset:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+
+/* ---------- temas ---------- */
+.temas { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 14px; }
+.tema-swatch {
+  width: 26px; height: 26px; border: 2px solid var(--tinta); cursor: pointer;
+  box-shadow: 2px 2px 0 var(--tinta); padding: 0;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+.tema-swatch:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--tinta); }
+.tema-swatch--ativo { outline: 3px solid var(--tinta); outline-offset: 2px; }
+.tema-swatch:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+
+.parada-dot--feito, .parada-dot--atual { color: var(--contraste); }
+.card--cor, .card--cor .card-txt, .card--cor .card-titulo, .card--cor .placar, .card--cor .placar-sub { color: var(--contraste); }
+
+/* Noite — modo escuro */
+.ddc--noite {
+  --papel: #131318;
+  --tinta: #F2EFE4;
+  --branco: #1E1E26;
+  --preto: #0B0B0F;
+  --laranja: #FF5C14;
+  --lima: #B8F53C;
+  --azul: #7A7AFF;
+  --vermelho: #FF5C4D;
+  --salmao: #FF9C86;
+  --cinza: #8F8B80;
+  --amarelo-claro: #33301E;
+  --creme: #26251C;
+  --tracinho: #3A3A44;
+  --lint-erro: #FF9B90;
+  --lint-aviso: #FFC46B;
+  --lint-dica: #E5DC9A;
+}
+
+/* Vapor — rosa/roxo/menta */
+.ddc--vapor {
+  --papel: #FBE8EF;
+  --tinta: #23102E;
+  --branco: #FFFFFF;
+  --preto: #23102E;
+  --laranja: #FF2E88;
+  --lima: #4DE6B8;
+  --azul: #7C3AED;
+  --vermelho: #E5254D;
+  --salmao: #FFB3C7;
+  --cinza: #8A7A8F;
+  --amarelo-claro: #FFEFC2;
+  --creme: #FFF5FA;
+}
+
+/* Táxi — amarelo/preto */
+.ddc--taxi {
+  --papel: #F5F1DC;
+  --tinta: #0D0D0D;
+  --branco: #FFFFFF;
+  --preto: #0D0D0D;
+  --laranja: #FFB800;
+  --lima: #3DDC84;
+  --azul: #1F5EFF;
+  --vermelho: #FF2E2E;
+  --salmao: #FFB3A7;
+  --cinza: #6B6659;
+  --amarelo-claro: #FFF3B0;
+  --creme: #FFFBEA;
+}
 
 /* ---------- animações ---------- */
 
@@ -1361,7 +1442,7 @@ function TelaTrilha({ progresso, onAbrir, onReset }) {
       </motion.div>
       {zerou && (
         <motion.div
-          className="card"
+          className="card card--cor"
           style={{ background: 'var(--lima)' }}
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -1506,7 +1587,7 @@ function TelaResultado({ modulo, score, xpGanho, ehUltimo, onRefazer, onTrilha }
     <div>
       <Letreiro mini rota={modulo.tag + ' · resultado'} destino={modulo.ponto} />
       <motion.div
-        className="card"
+        className="card card--cor"
         style={{ background: passou ? 'var(--lima)' : 'var(--salmao)' }}
         initial={{ scale: 0.9, opacity: 0, y: 24 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -1549,6 +1630,17 @@ export default function DevDoCorre() {
   const [progresso, setProgresso] = useState({ scores: {} });
   const [ativo, setAtivo] = useState(0);
   const [ultimoResultado, setUltimoResultado] = useState(null);
+  const [temaId, setTemaId] = useState(() => {
+    try { return localStorage.getItem(TEMA_KEY) || 'padrao'; } catch (e) { return 'padrao'; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem(TEMA_KEY, temaId); } catch (e) { /* sem storage, segue no tema da sessão */ }
+    const t = TEMAS.find(x => x.id === temaId) || TEMAS[0];
+    document.body.style.background = t.papel;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', t.papel);
+  }, [temaId]);
 
   useEffect(() => {
     let vivo = true;
@@ -1591,9 +1683,22 @@ export default function DevDoCorre() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <div className="ddc">
+    <div className={'ddc' + (temaId === 'padrao' ? '' : ' ddc--' + temaId)}>
       <style>{CSS}</style>
       <div className="ddc-shell">
+        <div className="temas" role="group" aria-label="Tema de cores">
+          {TEMAS.map(t => (
+            <button
+              key={t.id}
+              className={'tema-swatch' + (temaId === t.id ? ' tema-swatch--ativo' : '')}
+              style={{ background: 'linear-gradient(135deg, ' + t.cor + ' 50%, ' + t.papel + ' 50%)' }}
+              title={t.nome}
+              aria-label={'Tema ' + t.nome}
+              aria-pressed={temaId === t.id}
+              onClick={() => setTemaId(t.id)}
+            />
+          ))}
+        </div>
         <AnimatePresence mode="wait">
         <motion.div key={tela} variants={telaVariants} initial="inicial" animate="entra" exit="sai">
         {tela === 'carregando' && (
