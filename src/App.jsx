@@ -587,16 +587,53 @@ function escapaScript(s) {
   return String(s).replace(/<\/script/gi, "<\\/script");
 }
 
+/* MODO BUSÃO 🚌 — o iframe do sandbox tem origem opaca (sandbox=
+   "allow-scripts"), então as requisições dele NÃO passam pelo service
+   worker. Pro desafio rodar offline, o app baixa o TEXTO das libs por
+   aqui (essa fetch sim é cacheada pelo SW) e embute inline no srcdoc.
+   Enquanto o texto não chegou, cai pro <script src> normal (online). */
+const LIB_REACT =
+  "https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js";
+const LIB_REACT_DOM =
+  "https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js";
+const LIB_BABEL =
+  "https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js";
+const LIBS_POR_LANG = {
+  jsx: [LIB_REACT, LIB_REACT_DOM, LIB_BABEL],
+  ts: [LIB_BABEL],
+};
+const libsTexto = {}; // url -> fonte da lib, pronta pra inlinar
+const libsBaixando = {};
+
+function preCarregaLibs(lang) {
+  for (const url of LIBS_POR_LANG[lang] || []) {
+    if (libsTexto[url] || libsBaixando[url]) continue;
+    libsBaixando[url] = fetch(url)
+      .then((r) => (r.ok ? r.text() : null))
+      .then((t) => {
+        if (t) libsTexto[url] = t;
+        delete libsBaixando[url];
+      })
+      .catch(() => {
+        delete libsBaixando[url];
+      });
+  }
+}
+
+function tagLib(url) {
+  if (libsTexto[url]) {
+    return "<script>" + escapaScript(libsTexto[url]) + "</" + "script>";
+  }
+  return '<script src="' + url + '"></' + "script>";
+}
+
 function montaSrcDoc(codigo, preambulo) {
   const user = escapaScript((preambulo ? preambulo + "\n\n" : "") + codigo);
   return [
     '<!DOCTYPE html><html><head><meta charset="utf-8"/>',
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></' +
-      "script>",
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></' +
-      "script>",
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></' +
-      "script>",
+    tagLib(LIB_REACT),
+    tagLib(LIB_REACT_DOM),
+    tagLib(LIB_BABEL),
     "<style>",
     "body{font-family:system-ui,-apple-system,sans-serif;background:#ffffff;color:#0D0D0D;padding:14px;margin:0;font-size:15px}",
     "button{font-size:15px;padding:8px 14px;border-radius:0;border:2px solid #0D0D0D;background:#FF4D00;cursor:pointer;font-weight:700}",
@@ -655,11 +692,7 @@ function montaSrcDocWeb(codigo, lang, htmlBase, preambulo) {
 
   // js / ts: base HTML opcional + script do aluno
   const user = escapaScript((preambulo ? preambulo + "\n\n" : "") + codigo);
-  const babel =
-    lang === "ts"
-      ? '<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></' +
-        "script>"
-      : "";
+  const babel = lang === "ts" ? tagLib(LIB_BABEL) : "";
   const abreScript =
     lang === "ts"
       ? '<script type="text/babel" data-presets="typescript">'
@@ -856,6 +889,22 @@ const CSS = String.raw`
   text-transform: uppercase; letter-spacing: 1px;
   background: var(--laranja); color: var(--contraste);
   border: 2px solid var(--tinta); padding: 6px 10px;
+}
+
+/* corre do dia (streak) */
+.curso-card--diario { background: var(--amarelo-claro); }
+.diario-fogo {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  color: var(--laranja); white-space: nowrap;
+}
+
+/* aviso de offline — modo busão ativo */
+.offline-badge {
+  background: var(--preto); color: var(--lima);
+  border: 3px solid var(--tinta); box-shadow: 4px 4px 0 var(--tinta);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 8px 12px; margin-bottom: 14px; text-align: center;
 }
 
 /* ---------- cartões ---------- */
@@ -1254,6 +1303,95 @@ function scoresDoCurso(progresso, cursoId) {
       progresso.cursos[cursoId].scores) ||
     {}
   );
+}
+
+/* ---------- CORRE DO DIA · streak 🔥 ---------- */
+
+const DIARIO_KEY = "dev_do_corre_diario_v1";
+
+function dataStr(d) {
+  return (
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(d.getDate()).padStart(2, "0")
+  );
+}
+function hojeStr() {
+  return dataStr(new Date());
+}
+function ontemStr() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return dataStr(d);
+}
+
+function carregaDiario() {
+  try {
+    return JSON.parse(localStorage.getItem(DIARIO_KEY)) || null;
+  } catch (e) {
+    return null;
+  }
+}
+function salvaDiario(d) {
+  try {
+    localStorage.setItem(DIARIO_KEY, JSON.stringify(d));
+  } catch (e) {
+    /* sem storage, o fogo vive só na sessão */
+  }
+}
+
+// streak só vale se o último corre foi hoje ou ontem — pulou um dia, apagou
+function streakAtual(diario) {
+  if (!diario) return 0;
+  return diario.ultimoDia === hojeStr() || diario.ultimoDia === ontemStr()
+    ? diario.streak
+    : 0;
+}
+function feitoHoje(diario) {
+  return !!diario && diario.ultimoDia === hojeStr();
+}
+function registraDiario(diario) {
+  const hoje = hojeStr();
+  if (diario && diario.ultimoDia === hoje) return diario;
+  const streak = diario && diario.ultimoDia === ontemStr() ? diario.streak + 1 : 1;
+  return {
+    streak,
+    melhor: Math.max(streak, (diario && diario.melhor) || 0),
+    ultimoDia: hoje,
+  };
+}
+
+// gerador determinístico: o MESMO dia sorteia a MESMA sessão pra todo mundo
+function rndDoDia(semente) {
+  let h = 2166136261;
+  for (let i = 0; i < semente.length; i++) {
+    h ^= semente.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return function () {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+// a sessão do dia: 1 conceito do módulo atual da linha + 2 desafios
+// EXCLUSIVOS do diário (banco próprio, mesmo tema da matéria — nada
+// de repetir os desafios da trilha). Linha zerada? Vira revisão.
+function montaCorreDoDia(curso, scores) {
+  const rnd = rndDoDia(hojeStr() + "·" + curso.id);
+  const mods = curso.modules;
+  let mod = mods.find((m) => (scores[m.id] || 0) < 3);
+  const revisao = !mod;
+  if (!mod) mod = mods[Math.floor(rnd() * mods.length)];
+  const lesson = mod.lessons[Math.floor(rnd() * mod.lessons.length)];
+  const pool = DESAFIOS_DIARIOS[mod.id] || mod.desafios;
+  const i1 = Math.floor(rnd() * pool.length);
+  let i2 = Math.floor(rnd() * (pool.length - 1));
+  if (i2 >= i1) i2++;
+  return { mod, lesson, desafios: [pool[i1], pool[i2]], revisao };
 }
 
 function calcXP(scores, modules) {
@@ -1680,6 +1818,12 @@ function DesafioCode({ d, onResolvido }) {
   const ehJava = d.lang === "java";
   const ehWeb = d.lang === "html" || d.lang === "js" || d.lang === "ts";
 
+  // já vai baixando as libs do sandbox — assim dá pra inlinar
+  // no srcdoc e o desafio roda até offline (modo busão)
+  useEffect(() => {
+    preCarregaLibs(d.lang);
+  }, [d.lang]);
+
   // escuta o sandbox (só desafios React)
   useEffect(() => {
     if (ehJava) return;
@@ -1988,7 +2132,107 @@ function DesafioCode({ d, onResolvido }) {
 
 /* ============================ TELAS ============================ */
 
-function TelaHome({ progresso, onEscolher }) {
+function TelaCorreDoDia({ curso, scores, diario, onConcluir, onVoltar }) {
+  const [sessao] = useState(() => montaCorreDoDia(curso, scores));
+  const [passo, setPasso] = useState(0); // 0 = conceito · 1-2 = desafios · 3 = fim
+  const [acertos, setAcertos] = useState(0);
+  const terminou = passo === 3;
+
+  // registra o dia UMA vez, na hora que fecha a sessão
+  useEffect(() => {
+    if (terminou) onConcluir();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [terminou]);
+
+  const streak = streakAtual(diario);
+  const d = passo >= 1 && passo <= 2 ? sessao.desafios[passo - 1] : null;
+
+  function resolvido(pontuou) {
+    if (pontuou) setAcertos((a) => a + 1);
+    setPasso((p) => p + 1);
+  }
+
+  return (
+    <div>
+      <Letreiro
+        mini
+        rota={"CORRE DO DIA · " + (streak > 0 ? "🔥 x" + streak : "acende o fogo")}
+        destino={sessao.revisao ? "Revisão: " + sessao.mod.nome : sessao.mod.nome}
+      />
+      {!terminou && (
+        <p className="pager">
+          {passo === 0 ? "conceito do dia" : "desafio " + passo + " / 2"} · ~10 min
+        </p>
+      )}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={passo}
+          initial={{ opacity: 0, x: 36 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -36 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        >
+          {passo === 0 && (
+            <>
+              <div className="card">
+                <p className="card-titulo">{sessao.lesson.t}</p>
+                <p className="card-txt">{sessao.lesson.txt}</p>
+                {sessao.lesson.code && <code className="code">{sessao.lesson.code}</code>}
+              </div>
+              <div className="stack">
+                <button className="btn btn-laranja" onClick={() => setPasso(1)}>
+                  Bora pros 2 desafios 🔥
+                </button>
+              </div>
+            </>
+          )}
+          {d && (
+            <>
+              <div className="quiz-topo">
+                <span>Desafio {passo} / 2</span>
+                <span className="tipo-badge">{NOME_TIPO[d.tipo]}</span>
+                <span>✔ {acertos}</span>
+              </div>
+              {d.tipo === "quiz" && <DesafioQuiz d={d} onResolvido={resolvido} />}
+              {d.tipo === "encaixe" && <DesafioEncaixe d={d} onResolvido={resolvido} />}
+              {d.tipo === "code" && <DesafioCode d={d} onResolvido={resolvido} />}
+            </>
+          )}
+          {terminou && (
+            <motion.div
+              className="card card--cor"
+              style={{ background: "var(--lima)" }}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={springMedio}
+            >
+              <p className="trofeu">🔥</p>
+              <p className="placar">x{streakAtual(diario)}</p>
+              <p className="placar-sub">
+                {acertos}/2 no corre de hoje · não perde o busão de amanhã!
+              </p>
+              {diario && diario.melhor > 1 && (
+                <p className="card-txt" style={{ textAlign: "center", marginTop: 10 }}>
+                  Teu recorde: 🔥 x{diario.melhor}
+                  {sessao.revisao ? " · linha zerada, hoje foi revisão." : ""}
+                </p>
+              )}
+            </motion.div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+      <div className="stack">
+        <button className="btn btn-fantasma" onClick={onVoltar}>
+          {terminou ? "Voltar pro terminal" : "Abandonar (o fogo espera até amanhã)"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onEscolher }) {
+  const streak = streakAtual(diario);
+  const feito = feitoHoje(diario);
   return (
     <motion.div variants={listaStagger} initial="inicial" animate="entra">
       <Letreiro
@@ -1996,6 +2240,25 @@ function TelaHome({ progresso, onEscolher }) {
         destino={"DEV DO\nCORRE"}
         sub="dois cursos · um destino: Faria Lima"
       />
+      <motion.div variants={itemSobe}>
+        <button className="curso-card curso-card--diario" onClick={onCorreDoDia}>
+          <span className="parada-tag">
+            <span>CORRE DO DIA · MODO BUSÃO 🚌</span>
+            <span className="diario-fogo">
+              {streak > 0 ? "🔥 x" + streak : "🔥 apagado"}
+            </span>
+          </span>
+          <p className="parada-nome">{feito ? "Feito! Volta amanhã ✓" : "10 min no trajeto"}</p>
+          <p className="parada-desc">
+            {feito
+              ? "O fogo de hoje tá garantido. Amanhã tem mais — ou refaz de revisão."
+              : "1 conceito + 2 desafios EXCLUSIVOS do diário, no tema da linha " +
+                cursoAtual.titulo +
+                ". Funciona sem internet: túnel, 3G ruim, tanto faz."}
+          </p>
+          {!feito && <span className="curso-cta">Fazer o corre de hoje 🔥</span>}
+        </button>
+      </motion.div>
       <motion.div className="card" variants={itemSobe}>
         <p className="card-txt">
           Dois busões saindo do extremo sul. Em cada parada: conceito rápido e
@@ -2365,6 +2628,10 @@ export default function DevDoCorre() {
   });
   const [ativo, setAtivo] = useState(0);
   const [ultimoResultado, setUltimoResultado] = useState(null);
+  const [diario, setDiario] = useState(() => carregaDiario());
+  const [online, setOnline] = useState(() =>
+    typeof navigator !== "undefined" ? navigator.onLine : true
+  );
   const [temaId, setTemaId] = useState(() => {
     try {
       return localStorage.getItem(TEMA_KEY) || "padrao";
@@ -2376,6 +2643,24 @@ export default function DevDoCorre() {
   const curso = CURSOS.find((c) => c.id === cursoId) || CURSOS[0];
   const modules = curso.modules;
   const scores = scoresDoCurso(progresso, curso.id);
+
+  // modo busão: avisa quando cair a rede (e que tá tudo bem)
+  useEffect(() => {
+    const liga = () => setOnline(true);
+    const desliga = () => setOnline(false);
+    window.addEventListener("online", liga);
+    window.addEventListener("offline", desliga);
+    return () => {
+      window.removeEventListener("online", liga);
+      window.removeEventListener("offline", desliga);
+    };
+  }, []);
+
+  function concluirDiario() {
+    const novo = registraDiario(diario);
+    setDiario(novo);
+    salvaDiario(novo);
+  }
 
   useEffect(() => {
     try {
@@ -2457,6 +2742,11 @@ export default function DevDoCorre() {
       <div className={"ddc" + (temaId === "padrao" ? "" : " ddc--" + temaId)}>
         <style>{CSS}</style>
         <div className="ddc-shell">
+          {!online && (
+            <div className="offline-badge" role="status">
+              🚇 Sem sinal — modo busão ativo, tudo segue funcionando
+            </div>
+          )}
           <div className="temas" role="group" aria-label="Tema de cores">
             {TEMAS.map((t) => (
               <button
@@ -2495,7 +2785,23 @@ export default function DevDoCorre() {
                 />
               )}
               {tela === "home" && (
-                <TelaHome progresso={progresso} onEscolher={escolherCurso} />
+                <TelaHome
+                  progresso={progresso}
+                  diario={diario}
+                  cursoAtual={curso}
+                  onCorreDoDia={() => setTela("diario")}
+                  onEscolher={escolherCurso}
+                />
+              )}
+              {tela === "diario" && (
+                <TelaCorreDoDia
+                  key={hojeStr() + curso.id}
+                  curso={curso}
+                  scores={scores}
+                  diario={diario}
+                  onConcluir={concluirDiario}
+                  onVoltar={() => setTela("home")}
+                />
               )}
               {tela === "trilha" && (
                 <TelaTrilha
@@ -4423,6 +4729,782 @@ const MODULES_WEB = [
     ],
   },
 ];
+
+/* ---------- CORRE DO DIA · banco EXCLUSIVO de desafios ----------
+   Nada daqui aparece na trilha: é conteúdo próprio do diário, no tema
+   do módulo em que o aluno está. Só quiz e encaixe de propósito —
+   formato rápido, de dedão, que cabe nos 10 min do trajeto. */
+
+const DESAFIOS_DIARIOS = {
+  /* ----- Linha 5X-Sul ----- */
+  "react-basico": [
+    {
+      tipo: "quiz",
+      q: "Por que o nome de um componente React começa com letra MAIÚSCULA?",
+      opts: [
+        "É só estilo, tanto faz",
+        "É assim que o JSX diferencia componente (<Card />) de tag HTML (<card>)",
+        "Porque classe em JS exige maiúscula",
+        "Pra ficar igual ao Java",
+      ],
+      correct: 1,
+      explain:
+        "Minúscula o JSX trata como tag HTML nativa; maiúscula ele procura o SEU componente. <button> é o botão do navegador, <Button> é o seu.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o componente Botao que recebe o texto por prop:",
+      pecas: [
+        "function Botao({ texto }) {",
+        "  return (",
+        "    <button>{texto}</button>",
+        "  );",
+        "}",
+      ],
+      explain:
+        "A prop chega desestruturada no parâmetro e é interpolada com { } dentro do JSX. Um componente, infinitos botões.",
+    },
+    {
+      tipo: "quiz",
+      q: "O que useState(0) DEVOLVE exatamente?",
+      opts: [
+        "O número 0, direto",
+        "Um array com dois itens: o valor atual e a função pra atualizar",
+        "Um objeto { value: 0 }",
+        "Uma Promise com o estado",
+      ],
+      correct: 1,
+      explain:
+        "Por isso a desestruturação de array: const [likes, setLikes] = useState(0). Posição 0 é o valor, posição 1 é o set.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o contador mais enxuto do mundo:",
+      pecas: [
+        "function Contador() {",
+        "  const [n, setN] = useState(0);",
+        "  return (",
+        "    <button onClick={() => setN(n + 1)}>{n}</button>",
+        "  );",
+        "}",
+      ],
+      explain:
+        "State primeiro, JSX depois. O onClick chama o set, o set re-renderiza, o {n} novo aparece. Esse ciclo É o React.",
+    },
+  ],
+  "react-inter": [
+    {
+      tipo: "quiz",
+      q: "useEffect SEM array de dependências (nem vazio) roda quando?",
+      opts: [
+        "Uma vez só, na montagem",
+        "A CADA renderização do componente",
+        "Nunca",
+        "Só quando o state muda",
+      ],
+      correct: 1,
+      explain:
+        "Sem array, ele roda depois de todo render. Com [] roda 1x. Com [dep] roda quando a dep muda. Três comportamentos bem diferentes!",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o efeito com timer E a limpeza (cleanup):",
+      pecas: [
+        "useEffect(() => {",
+        "  const id = setInterval(tick, 1000);",
+        "  return () => clearInterval(id);",
+        "}, []);",
+      ],
+      explain:
+        "O return do useEffect é a função de limpeza: roda quando o componente desmonta. Sem ela, o timer continua rodando fantasma.",
+    },
+    {
+      tipo: "quiz",
+      q: "Pra que serve a key quando você renderiza uma lista com .map()?",
+      opts: [
+        "Deixa a lista em ordem alfabética",
+        "É como o React identifica quem entrou, saiu ou mudou — sem ela, ele se perde",
+        "Criptografa o item",
+        "É obrigatória só em listas com mais de 10 itens",
+      ],
+      correct: 1,
+      explain:
+        "A key é a identidade de cada item entre um render e outro. Ideal: um id estável do dado. Índice do array só em último caso.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a lista de frutas renderizada com map:",
+      pecas: [
+        "<ul>",
+        "  {frutas.map(f => (",
+        "    <li key={f}>{f}</li>",
+        "  ))}",
+        "</ul>",
+      ],
+      explain:
+        "O map vai DENTRO do JSX, entre chaves. Cada item vira uma <li> com key. Fecha o map, fecha a <ul>.",
+    },
+  ],
+  "react-avancado": [
+    {
+      tipo: "quiz",
+      q: "Onde NÃO pode chamar um hook?",
+      opts: [
+        "No topo do componente",
+        "Dentro de if, loop ou função aninhada",
+        "Dentro de outro hook",
+        "Em um custom hook",
+      ],
+      correct: 1,
+      explain:
+        "Hooks precisam rodar SEMPRE na mesma ordem a cada render — por isso só no topo. Dentro de if, a ordem muda e o React se perde.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o componente que lê o tema direto do Context:",
+      pecas: [
+        "function Botao() {",
+        "  const tema = useContext(TemaContext);",
+        "  return <button className={tema}>Ok</button>;",
+        "}",
+      ],
+      explain:
+        "useContext(TemaContext) lê o valor mais próximo do Provider acima na árvore — sem passar prop por prop.",
+    },
+    {
+      tipo: "quiz",
+      q: "Quando vale a pena usar useMemo?",
+      opts: [
+        "Em todo cálculo, sempre",
+        "Quando um cálculo PESADO não precisa refazer a cada render",
+        "Pra deixar o state global",
+        "Só em produção",
+      ],
+      correct: 1,
+      explain:
+        "useMemo tem custo próprio (guardar e comparar deps). Usa quando o cálculo é caro de verdade — otimização prematura é cilada.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o custom hook que sincroniza o título da aba:",
+      pecas: [
+        "function useTitulo(texto) {",
+        "  useEffect(() => {",
+        "    document.title = texto;",
+        "  }, [texto]);",
+        "}",
+      ],
+      explain:
+        "Custom hook pode usar outros hooks. O [texto] garante: mudou o texto, atualiza o título. Lógica reutilizável em 5 linhas.",
+    },
+  ],
+  "java-basico": [
+    {
+      tipo: "quiz",
+      q: "Qual dessas declarações Java está CERTA?",
+      opts: [
+        'int idade = "25";',
+        "double preco = 9.90;",
+        "boolean ativo = 1;",
+        'String nome = Edu;',
+      ],
+      correct: 1,
+      explain:
+        'double aceita decimal. As outras: int não aceita texto, boolean em Java é true/false (não 0/1), e String precisa de aspas: "Edu".',
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o while que imprime 0, 1 e 2:",
+      pecas: [
+        "int i = 0;",
+        "while (i < 3) {",
+        "  System.out.println(i);",
+        "  i++;",
+        "}",
+      ],
+      explain:
+        "Declara antes, testa na entrada, incrementa DENTRO. Esquece o i++ e o while roda pra sempre — loop infinito clássico.",
+    },
+    {
+      tipo: "quiz",
+      q: "List<String> nomes = new ArrayList<>(); — o que nomes.size() devolve logo em seguida?",
+      opts: ["null", "0", "1", "Erro de compilação"],
+      correct: 1,
+      explain:
+        "A lista nasce criada e VAZIA: size() é 0. null seria se você não tivesse dado o new. São coisas bem diferentes!",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o if/else do rolê no shopping:",
+      pecas: [
+        "if (saldo >= preco) {",
+        '  System.out.println("Pode comprar");',
+        "} else {",
+        '  System.out.println("Saldo curto");',
+        "}",
+      ],
+      explain:
+        "Condição entre parênteses, cada bloco com suas chaves, e o else cola na chave que fecha o if. Sintaxe de família C.",
+    },
+  ],
+  "java-poo": [
+    {
+      tipo: "quiz",
+      q: "Pra que serve o this dentro de uma classe?",
+      opts: [
+        "Cria um objeto novo",
+        "Referencia o PRÓPRIO objeto — ex.: separar o atributo do parâmetro de mesmo nome",
+        "Chama a classe pai",
+        "Torna o método estático",
+      ],
+      correct: 1,
+      explain:
+        "No construtor, this.modelo = modelo diz: o atributo DESTE objeto recebe o parâmetro que chegou. Sem o this, seria parâmetro = parâmetro.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a classe com atributo privado e o getter público:",
+      pecas: [
+        "public class Carro {",
+        "  private String modelo;",
+        "  public String getModelo() {",
+        "    return modelo;",
+        "  }",
+        "}",
+      ],
+      explain:
+        "Atributo trancado (private), leitura liberada pelo getter (public). Quem tá fora lê, mas não bagunça — encapsulamento na veia.",
+    },
+    {
+      tipo: "quiz",
+      q: "O que uma INTERFACE define em Java?",
+      opts: [
+        "A tela do sistema",
+        "Um CONTRATO: quais métodos a classe que implementar é obrigada a ter",
+        "Uma classe que não pode ter métodos",
+        "O banco de dados da aplicação",
+      ],
+      correct: 1,
+      explain:
+        "Interface diz O QUE a classe faz, não COMO. Quem dá o implements assina o contrato e o compilador cobra cada método.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a subclasse que repassa o nome pro construtor do pai:",
+      pecas: [
+        "class Moto extends Veiculo {",
+        "  public Moto(String nome) {",
+        "    super(nome);",
+        "  }",
+        "}",
+      ],
+      explain:
+        "extends herda, e o super(nome) chama o construtor da classe pai — sempre na PRIMEIRA linha do construtor filho.",
+    },
+  ],
+  "spring-boot": [
+    {
+      tipo: "quiz",
+      q: "Qual annotation marca a classe que guarda a REGRA DE NEGÓCIO?",
+      opts: ["@RestController", "@Service", "@Entity", "@Autowired"],
+      correct: 1,
+      explain:
+        "Controller atende HTTP, @Service pensa (regra de negócio), Repository busca no banco. O @Service é o miolo da arquitetura.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o service com injeção de dependência via construtor:",
+      pecas: [
+        "@Service",
+        "public class PedidoService {",
+        "  private final PedidoRepository repo;",
+        "  public PedidoService(PedidoRepository repo) {",
+        "    this.repo = repo;",
+        "  }",
+        "}",
+      ],
+      explain:
+        "Annotation em cima, atributo final, e o Spring entrega o repo pronto pelo construtor. Você declara o que precisa, ele injeta.",
+    },
+    {
+      tipo: "quiz",
+      q: "Qual verbo HTTP é o padrão pra ATUALIZAR um recurso existente?",
+      opts: ["GET", "PUT", "POST", "DELETE"],
+      correct: 1,
+      explain:
+        "GET busca, POST cria, PUT atualiza, DELETE apaga. É o CRUD falado em HTTP — decorou isso, leu qualquer API do mundo.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o endpoint que APAGA um produto pelo id:",
+      pecas: [
+        '@DeleteMapping("/{id}")',
+        "public void apagar(@PathVariable Long id) {",
+        "  service.apagar(id);",
+        "}",
+      ],
+      explain:
+        "O {id} da URL cai no parâmetro via @PathVariable, e o controller só delega pro service. Fino, como controller deve ser.",
+    },
+  ],
+  fullstack: [
+    {
+      tipo: "quiz",
+      q: "Em que FORMATO os dados viajam entre o React e a API Spring?",
+      opts: ["XML", "JSON", "CSV", "Objeto Java serializado"],
+      correct: 1,
+      explain:
+        'JSON: texto estruturado que os dois lados entendem. O Spring serializa o objeto Java, o React faz res.json() e vira objeto JS.',
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a corrente do fetch, do pedido ao tratamento do erro:",
+      pecas: [
+        "fetch('/api/produtos')",
+        "  .then(res => res.json())",
+        "  .then(setProdutos)",
+        "  .catch(err => setErro(err.message));",
+      ],
+      explain:
+        "Pede → converte pra JSON → joga no state → e o catch segura qualquer falha da corrente. Sempre nessa ordem.",
+    },
+    {
+      tipo: "quiz",
+      q: "A API respondeu 404. O que isso significa?",
+      opts: [
+        "Deu tudo certo",
+        "O recurso pedido não existe naquele endereço",
+        "O servidor caiu",
+        "Falta de permissão",
+      ],
+      correct: 1,
+      explain:
+        "2xx = sucesso, 4xx = erro de quem PEDIU (404 não achou, 401/403 permissão), 5xx = erro do servidor. O prefixo já conta a história.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a busca com async/await, a versão moderna do fetch:",
+      pecas: [
+        "async function carrega() {",
+        "  const res = await fetch('/api/pedidos');",
+        "  const dados = await res.json();",
+        "  setPedidos(dados);",
+        "}",
+      ],
+      explain:
+        "async libera o await, e cada await espera uma etapa: resposta chegar, JSON converter. Lê de cima pra baixo, sem corrente de .then.",
+    },
+  ],
+
+  /* ----- Linha 6X-Sul ----- */
+  "html-base": [
+    {
+      tipo: "quiz",
+      q: "Quantos <h1> uma página deve ter, na boa prática?",
+      opts: [
+        "Quantos quiser",
+        "UM — é o título principal da página",
+        "No mínimo três",
+        "Nenhum, h1 é obsoleto",
+      ],
+      correct: 1,
+      explain:
+        "Um h1 por página: é o título principal que leitores de tela e o Google usam pra entender do que ela trata. Subtítulos: h2 em diante.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a lista NUMERADA da rotina do corre:",
+      pecas: [
+        "<ol>",
+        "  <li>Acorda</li>",
+        "  <li>Pega o busão</li>",
+        "  <li>Coda</li>",
+        "</ol>",
+      ],
+      explain:
+        "<ol> = ordered list, o navegador numera sozinho. Os itens continuam sendo <li> — o que muda é só a tag de fora.",
+    },
+    {
+      tipo: "quiz",
+      q: "Diferença entre <ul> e <ol>:",
+      opts: [
+        "Nenhuma, são sinônimos",
+        "<ul> é lista com marcador (bolinha); <ol> é lista NUMERADA",
+        "<ol> só aceita números como conteúdo",
+        "<ul> é a versão antiga do <ol>",
+      ],
+      correct: 1,
+      explain:
+        "ul = unordered (bolinha), ol = ordered (1, 2, 3...). Ranking e passo a passo pedem <ol>; lista de compras pede <ul>.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o link que leva pro site (abre e fecha certinho):",
+      pecas: [
+        '<a href="https://devdocorre.com">',
+        "  Cola no site",
+        "</a>",
+      ],
+      explain:
+        "O endereço vai no atributo href, o texto clicável vai DENTRO da tag. Sem href, o <a> nem vira link.",
+    },
+  ],
+  "html-forms": [
+    {
+      tipo: "quiz",
+      q: "Qual atributo OBRIGA o usuário a preencher o campo antes de enviar?",
+      opts: ["placeholder", "required", "validate", "important"],
+      correct: 1,
+      explain:
+        "required faz o navegador barrar o envio com campo vazio, de graça, sem JavaScript. placeholder é só a dica cinza dentro do campo.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o select pra escolher a linha do busão:",
+      pecas: [
+        '<select id="linha">',
+        "  <option>5X-Sul</option>",
+        "  <option>6X-Sul</option>",
+        "</select>",
+      ],
+      explain:
+        "<select> é a caixinha, cada <option> é uma escolha. Fecha as options, fecha o select.",
+    },
+    {
+      tipo: "quiz",
+      q: "Pra que serve a tag <footer>?",
+      opts: [
+        "Esconder conteúdo",
+        "Marcar o RODAPÉ: contato, créditos, links finais da página",
+        "Carregar a página mais rápido",
+        "Criar rolagem infinita",
+      ],
+      correct: 1,
+      explain:
+        "É semântica: o <footer> DIZ que aquilo é rodapé. Leitor de tela pula direto pra lá quando o usuário quer o contato.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o esqueleto semântico de uma página inteira:",
+      pecas: [
+        "<header>",
+        "  <nav>menu</nav>",
+        "</header>",
+        "<main>conteúdo</main>",
+        "<footer>contato</footer>",
+      ],
+      explain:
+        "Topo (com o menu dentro), conteúdo principal e rodapé. Três regiões que qualquer leitor de tela navega de olhos fechados.",
+    },
+  ],
+  "css-base": [
+    {
+      tipo: "quiz",
+      q: "Duas regras conflitam: uma por CLASSE (.aviso) e uma por ID (#topo). Quem vence?",
+      opts: [
+        "A classe, sempre",
+        "O ID — é mais ESPECÍFICO que a classe",
+        "A que tiver mais propriedades",
+        "Nenhuma é aplicada",
+      ],
+      correct: 1,
+      explain:
+        "Especificidade: id > classe > tag. Empatou, vence quem vem depois no arquivo. Por isso id no CSS é força bruta — prefira classes.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o efeito de hover do botão:",
+      pecas: [
+        "button:hover {",
+        "  background: #B8F53C;",
+        "  transform: translate(2px, 2px);",
+        "}",
+      ],
+      explain:
+        ":hover é um pseudo-seletor: a regra só vale enquanto o mouse está em cima. É o feedback visual mais barato que existe.",
+    },
+    {
+      tipo: "quiz",
+      q: "O que margin: 8px 16px; significa?",
+      opts: [
+        "8px em todos os lados, 16px de borda",
+        "8px em cima/embaixo e 16px nas laterais",
+        "8px à esquerda e 16px à direita",
+        "É sintaxe inválida",
+      ],
+      correct: 1,
+      explain:
+        "Dois valores: o primeiro é o eixo vertical, o segundo o horizontal. Quatro valores giram no relógio: cima, direita, baixo, esquerda.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a classe de aviso — vermelho e em negrito:",
+      pecas: [
+        ".aviso {",
+        "  color: #FF2E2E;",
+        "  font-weight: bold;",
+        "}",
+      ],
+      explain:
+        "Seletor com ponto (classe), e dentro cada dupla propriedade: valor; — a anatomia de toda regra CSS, sem exceção.",
+    },
+  ],
+  "css-layout": [
+    {
+      tipo: "quiz",
+      q: "O que flex-direction: column faz num container flex?",
+      opts: [
+        "Cria colunas de texto tipo jornal",
+        "Empilha os filhos na VERTICAL em vez de enfileirar na horizontal",
+        "Centraliza tudo",
+        "Inverte a ordem dos filhos",
+      ],
+      correct: 1,
+      explain:
+        "O padrão do flex é row (fileira). column vira pilha — e atenção: o justify-content passa a agir na vertical, porque o eixo principal girou.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a regra que centraliza QUALQUER coisa na tela:",
+      pecas: [
+        ".tela {",
+        "  display: flex;",
+        "  justify-content: center;",
+        "  align-items: center;",
+        "}",
+      ],
+      explain:
+        "O trio sagrado: vira flex, centraliza no eixo principal e no cruzado. Decorou essas 3 linhas, nunca mais sofre pra centralizar.",
+    },
+    {
+      tipo: "quiz",
+      q: "Pra que serve o gap no flexbox/grid?",
+      opts: [
+        "Cria espaço ENTRE os filhos, sem precisar de margin em cada um",
+        "Esconde elementos",
+        "Define a largura do container",
+        "Só funciona no grid",
+      ],
+      correct: 0,
+      explain:
+        "gap: 12px espaça todo mundo de uma vez, só entre os itens (sem sobrar nas pontas). Funciona em flex E grid.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a media query que mostra o menu só em tela grande:",
+      pecas: [
+        "@media (min-width: 700px) {",
+        "  .menu {",
+        "    display: flex;",
+        "  }",
+        "}",
+      ],
+      explain:
+        "A regra de dentro só vale quando a condição de fora é verdade. Repara: são DUAS chaves fechando — a da classe e a da media.",
+    },
+  ],
+  "js-base": [
+    {
+      tipo: "quiz",
+      q: "Quanto dá 2 + '2' no JavaScript?",
+      opts: ["4", "'22' — vira texto, o + concatena", "Erro", "NaN"],
+      correct: 1,
+      explain:
+        "Número + string = o JS converte tudo pra string e cola: '22'. Clássica pegadinha — por isso confira os tipos antes de somar.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a função de saudação com template string:",
+      pecas: [
+        "function saudacao(nome) {",
+        "  return `Salve, ${nome}!`;",
+        "}",
+      ],
+      explain:
+        "Crase abre a template string e ${ } interpola a variável dentro. Bem mais limpo que 'Salve, ' + nome + '!'.",
+    },
+    {
+      tipo: "quiz",
+      q: "Qual linha declara um ARRAY corretamente?",
+      opts: [
+        "const lista = (1, 2, 3);",
+        "const lista = [1, 2, 3];",
+        "const lista = {1, 2, 3};",
+        "array lista = 1, 2, 3;",
+      ],
+      correct: 1,
+      explain:
+        "Colchetes [ ] = array. Chaves { } = objeto. Parênteses agrupam expressões. Cada símbolo tem seu papel no JS.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o if/else que dá boa noite depois das 18h:",
+      pecas: [
+        "const hora = 19;",
+        "if (hora >= 18) {",
+        "  console.log('Boa noite!');",
+        "} else {",
+        "  console.log('Bom dia!');",
+        "}",
+      ],
+      explain:
+        "Variável antes, condição no if, e cada caminho no seu bloco. Com hora = 19, sai 'Boa noite!'.",
+    },
+  ],
+  "js-dom": [
+    {
+      tipo: "quiz",
+      q: "Diferença entre querySelector e querySelectorAll:",
+      opts: [
+        "Nenhuma",
+        "querySelector pega o PRIMEIRO que casa; querySelectorAll pega TODOS (numa lista)",
+        "querySelectorAll é mais rápido",
+        "querySelector só aceita id",
+      ],
+      correct: 1,
+      explain:
+        "O All devolve uma NodeList — dá pra percorrer com forEach. O sem All devolve um elemento só (ou null se não achou).",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a criação de um item novo na lista, via JS:",
+      pecas: [
+        "const li = document.createElement('li');",
+        "li.textContent = 'Novo corre';",
+        "lista.appendChild(li);",
+      ],
+      explain:
+        "Cria o elemento, dá o texto, e só ENTÃO pendura na página com appendChild. Antes do append, ele existe só na memória.",
+    },
+    {
+      tipo: "quiz",
+      q: "Qual evento dispara a CADA tecla digitada num campo de texto?",
+      opts: ["'click'", "'input'", "'submit'", "'load'"],
+      correct: 1,
+      explain:
+        "'input' dispara a cada mudança no campo — perfeito pra busca em tempo real. 'submit' é só quando o formulário é enviado.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o submit que NÃO recarrega a página:",
+      pecas: [
+        "form.addEventListener('submit', (e) => {",
+        "  e.preventDefault();",
+        "  console.log('enviado sem recarregar');",
+        "});",
+      ],
+      explain:
+        "O padrão do submit é recarregar a página inteira. O e.preventDefault() segura isso — primeiro passo de todo form em SPA.",
+    },
+  ],
+  "js-avancado": [
+    {
+      tipo: "quiz",
+      q: "Pra que serve o reduce?",
+      opts: [
+        "Diminuir o tamanho do array",
+        "REDUZIR o array a um valor só: soma, média, total...",
+        "Remover duplicados",
+        "Ordenar os itens",
+      ],
+      correct: 1,
+      explain:
+        "precos.reduce((total, p) => total + p, 0) percorre acumulando. O segundo argumento (0) é o valor inicial do acumulador.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta o map que aplica 10% de taxa nos preços:",
+      pecas: [
+        "const precos = [10, 20, 30];",
+        "const comTaxa = precos.map(p => p * 1.1);",
+        "console.log(comTaxa);",
+      ],
+      explain:
+        "map transforma cada item e devolve um array NOVO — o precos original fica intacto. Imutabilidade que o React agradece.",
+    },
+    {
+      tipo: "quiz",
+      q: "O que const copia = { ...pessoa } faz?",
+      opts: [
+        "Aponta pro MESMO objeto",
+        "Cria uma cópia rasa: objeto novo com as mesmas propriedades",
+        "Apaga o objeto original",
+        "Converte pra array",
+      ],
+      correct: 1,
+      explain:
+        "O spread espalha as propriedades num objeto novo. 'Rasa' porque objetos aninhados ainda são compartilhados — atenção nisso.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a busca async com try/catch segurando o erro:",
+      pecas: [
+        "async function busca() {",
+        "  try {",
+        "    const res = await fetch('/api');",
+        "    return await res.json();",
+        "  } catch (erro) {",
+        "    console.log('deu ruim:', erro);",
+        "  }",
+        "}",
+      ],
+      explain:
+        "Com await, o erro do fetch cai direto no catch — o equivalente async do .catch() das Promises. Rede SEMPRE pode falhar: trata.",
+    },
+  ],
+  "ts-mini": [
+    {
+      tipo: "quiz",
+      q: "O que const notas: number[] declara?",
+      opts: [
+        "Um número só",
+        "Um ARRAY onde todo item tem que ser number",
+        "Uma matriz",
+        "Um número opcional",
+      ],
+      correct: 1,
+      explain:
+        "tipo[] é array daquele tipo. notas.push('dez') nem compila — o TS barra antes de rodar. Existe também a forma Array<number>.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a função tipada que decide se é maior de idade:",
+      pecas: [
+        "function ehMaior(idade: number): boolean {",
+        "  return idade >= 18;",
+        "}",
+      ],
+      explain:
+        "Parâmetro tipado na entrada, boolean prometido na saída. Quem chamar ehMaior('vinte') leva bronca do compilador na hora.",
+    },
+    {
+      tipo: "quiz",
+      q: "Como marcar uma propriedade OPCIONAL numa interface?",
+      opts: [
+        "Com * depois do nome",
+        "Com ? depois do nome: desconto?: number",
+        "Com optional na frente",
+        "Não existe propriedade opcional",
+      ],
+      correct: 1,
+      explain:
+        "O ? diz: pode vir, pode faltar. Aí o TS te obriga a tratar o caso undefined ao usar — segurança em dobro.",
+    },
+    {
+      tipo: "encaixe",
+      enunciado: "Monta a interface e o objeto que cumpre o contrato:",
+      pecas: [
+        "interface Usuario {",
+        "  nome: string;",
+        "  idade: number;",
+        "}",
+        'const edu: Usuario = { nome: "Edu", idade: 25 };',
+      ],
+      explain:
+        "Primeiro o contrato (interface), depois o objeto anotado com ele. Faltou propriedade ou errou tipo? O TS aponta na linha.",
+    },
+  ],
+};
 
 /* ---------- AS LINHAS (cursos disponíveis) ---------- */
 
