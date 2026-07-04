@@ -2132,6 +2132,92 @@ function DesafioCode({ d, onResolvido }) {
 
 /* ============================ TELAS ============================ */
 
+/* ---------- instalar como app (PWA) ----------
+   Android e PC (Chrome/Edge): o navegador dispara beforeinstallprompt;
+   guardamos o evento e o botão chama o prompt nativo de instalação.
+   iPhone: a Apple NÃO permite instalar por código — o botão vira um
+   passo a passo (Compartilhar → Adicionar à Tela de Início). */
+
+function useInstalarApp() {
+  const [evento, setEvento] = useState(null);
+  const [instalado, setInstalado] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true
+    );
+  });
+
+  useEffect(() => {
+    function guarda(e) {
+      e.preventDefault(); // segura o mini-banner do Chrome; a gente mostra no NOSSO botão
+      setEvento(e);
+    }
+    function feito() {
+      setEvento(null);
+      setInstalado(true);
+    }
+    window.addEventListener("beforeinstallprompt", guarda);
+    window.addEventListener("appinstalled", feito);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", guarda);
+      window.removeEventListener("appinstalled", feito);
+    };
+  }, []);
+
+  const ehIOS =
+    typeof navigator !== "undefined" &&
+    (/iphone|ipad|ipod/i.test(navigator.userAgent) ||
+      // iPad novo se apresenta como Mac, mas Mac não tem multitoque
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+
+  async function instalar() {
+    if (!evento) return;
+    evento.prompt();
+    const escolha = await evento.userChoice;
+    if (escolha && escolha.outcome === "accepted") setEvento(null);
+  }
+
+  return { instalado, podeDireto: !!evento, ehIOS, instalar };
+}
+
+function CardInstalar() {
+  const { instalado, podeDireto, ehIOS, instalar } = useInstalarApp();
+  const [guiaIOS, setGuiaIOS] = useState(false);
+
+  // já roda como app, ou o navegador não suporta nenhum dos caminhos: some
+  if (instalado || (!podeDireto && !ehIOS)) return null;
+
+  return (
+    <>
+      <button
+        className="btn btn-lima"
+        onClick={() => (podeDireto ? instalar() : setGuiaIOS((v) => !v))}
+      >
+        📲 Instalar o app na tela inicial
+      </button>
+      {guiaIOS && !podeDireto && (
+        <motion.div
+          className="missao missao--dica"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={springMedio}
+        >
+          <b>No iPhone/iPad é manual (regra da Apple), mas é rapidinho:</b>
+          <br />
+          1. Abre este site no <b>Safari</b>
+          <br />
+          2. Toca no botão <b>Compartilhar</b> (o quadrado com a seta pra cima)
+          <br />
+          3. Desce e toca em <b>“Adicionar à Tela de Início”</b>
+          <br />
+          Pronto: vira app, com ícone e tudo — e funciona offline no busão. 🚌
+        </motion.div>
+      )}
+    </>
+  );
+}
+
 function TelaCorreDoDia({ curso, scores, diario, onConcluir, onVoltar }) {
   const [sessao] = useState(() => montaCorreDoDia(curso, scores));
   const [passo, setPasso] = useState(0); // 0 = conceito · 1-2 = desafios · 3 = fim
@@ -2294,6 +2380,9 @@ function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onEscolher }) {
           </motion.div>
         );
       })}
+      <motion.div className="stack" variants={itemSobe}>
+        <CardInstalar />
+      </motion.div>
       <motion.p className="footer-note" variants={itemSobe}>
         Cada linha guarda o próprio progresso. Pode fechar e voltar depois, o
         busão te espera.
