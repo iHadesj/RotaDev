@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "npm run test:curriculum && npm run build",
+    "test": "npm run test:source && npm run test:curriculum && npm run build",
+    "test:source": "node scripts/validate-source.mjs",
     "test:curriculum": "node scripts/validate-curriculum.mjs",
     "preview": "vite preview",
     "sync:switch": "node scripts/sync-romfs.mjs",
@@ -19,6 +20,8 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@babel/parser": "^7.29.7",
+    "@babel/traverse": "^7.29.7",
     "@vitejs/plugin-legacy": "^5.4.3",
     "@vitejs/plugin-react": "^4.3.4",
     "terser": "^5.48.0",

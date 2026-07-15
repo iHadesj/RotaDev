@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { springMedio } from "../../config/appConfig.js";
+import { NOME_TIPO_DESAFIO } from "../../config/challengeConfig.js";
 import { DesafioCode, DesafioEncaixe, DesafioQuiz } from "../../components/challenges/index.jsx";
 import { EntregaProjeto } from "../../components/EntregaProjeto/index.jsx";
 import { Letreiro } from "../../components/ui/index.jsx";
-
-const NOME_TIPO = { quiz: "Quiz", encaixe: "Encaixe 🧩", code: "Código ⌨️" };
 
 export function TelaDesafios({ modulo, onFim, onVoltar }) {
   const [qi, setQi] = useState(0);
@@ -58,7 +57,7 @@ export function TelaDesafios({ modulo, onFim, onVoltar }) {
           transition={springMedio}
           style={{ display: "inline-block" }}
         >
-          {NOME_TIPO[d.tipo]}
+          {NOME_TIPO_DESAFIO[d.tipo]}
         </motion.span>
         <span>
           <motion.span

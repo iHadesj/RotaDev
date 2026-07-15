@@ -136,7 +136,6 @@ export default function DevDoCorre() {
   return (
     <MotionConfig reducedMotion="user">
       <div className={"ddc" + (temaId === "padrao" ? "" : " ddc--" + temaId)}>
-        <style>{CSS}</style>
         <div className="ddc-shell">
           {!online && (
             <div className="offline-badge" role="status">

@@ -1,8 +1,14 @@
 import { CURSOS } from "../src/data/curriculum.js";
+import fs from "node:fs";
 
 const supportedTypes = new Set(["quiz", "encaixe", "code"]);
 const ids = new Set();
 const errors = [];
+
+const appSource = fs.readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
+if (appSource.includes("<style>{CSS}</style>")) {
+  errors.push("App.jsx: injeção legada <style>{CSS}</style> ainda presente");
+}
 let lessonCount = 0;
 let challengeCount = 0;
 let projectCount = 0;

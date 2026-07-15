@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { springMedio } from "../../config/appConfig.js";
+import { NOME_TIPO_DESAFIO } from "../../config/challengeConfig.js";
 import { DesafioCode, DesafioEncaixe, DesafioQuiz } from "../../components/challenges/index.jsx";
 import { Letreiro } from "../../components/ui/index.jsx";
 import { montaCorreDoDia, streakAtual } from "../../services/progressService.js";
@@ -63,7 +64,7 @@ export function TelaCorreDoDia({ curso, scores, diario, onConcluir, onVoltar }) 
             <>
               <div className="quiz-topo">
                 <span>Desafio {passo} / 2</span>
-                <span className="tipo-badge">{NOME_TIPO[d.tipo]}</span>
+                <span className="tipo-badge">{NOME_TIPO_DESAFIO[d.tipo]}</span>
                 <span>✔ {acertos}</span>
               </div>
               {d.tipo === "quiz" && <DesafioQuiz d={d} onResolvido={resolvido} />}

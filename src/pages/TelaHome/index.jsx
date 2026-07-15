@@ -3,7 +3,11 @@ import { itemSobe, listaStagger } from "../../config/appConfig.js";
 import { CardInstalar } from "../../components/CardInstalar/index.jsx";
 import { Letreiro } from "../../components/ui/index.jsx";
 import { CURSOS } from "../../data/curriculum.js";
-import { feitoHoje, streakAtual } from "../../services/progressService.js";
+import {
+  feitoHoje,
+  scoresDoCurso,
+  streakAtual,
+} from "../../services/progressService.js";
 
 export function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onEscolher }) {
   const streak = streakAtual(diario);

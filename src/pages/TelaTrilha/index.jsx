@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { chuvaDeConfete, itemLado, listaStagger, springMedio } from "../../config/appConfig.js";
+import { chuvaDeConfete, getLevel, itemLado, listaStagger, springMedio } from "../../config/appConfig.js";
 import { Letreiro, XPBar } from "../../components/ui/index.jsx";
 import { calcXP } from "../../services/progressService.js";
 
