@@ -6,6 +6,8 @@
 .ddc {
   --papel: #EFE9DC;
   --tinta: #0D0D0D;
+  --borda: #0D0D0D;
+  --sombra: #0D0D0D;
   --branco: #FFFFFF;
   --laranja: #FF4D00;
   --lima: #B8F53C;
@@ -48,8 +50,8 @@
 /* ---------- letreiro de busão (assinatura) ---------- */
 .letreiro {
   background: var(--branco);
-  border: 4px solid var(--tinta);
-  box-shadow: 10px 10px 0 var(--tinta);
+  border: 4px solid var(--borda);
+  box-shadow: 10px 10px 0 var(--sombra);
 }
 .letreiro-rota {
   background: var(--preto);
@@ -66,12 +68,12 @@
 }
 .letreiro-sub {
   background: var(--lima);
-  border-top: 4px solid var(--tinta);
+  border-top: 4px solid var(--borda);
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px; letter-spacing: 2px; color: var(--contraste);
   margin: 0; padding: 8px 16px; text-transform: uppercase;
 }
-.letreiro--mini { box-shadow: 8px 8px 0 var(--tinta); }
+.letreiro--mini { box-shadow: 8px 8px 0 var(--sombra); }
 .letreiro--mini .letreiro-rota { font-size: 10px; letter-spacing: 2px; padding: 7px 14px; }
 .letreiro--mini .letreiro-dest { font-size: 22px; letter-spacing: 0.5px; padding: 12px 14px; }
 
@@ -79,10 +81,10 @@
 .btn {
   font-family: 'Archivo Black', sans-serif;
   text-transform: uppercase; letter-spacing: 1px; font-size: 15px;
-  border: 3px solid var(--tinta); border-radius: 0;
+  border: 3px solid var(--borda); border-radius: 0;
   padding: 14px 18px; cursor: pointer; width: 100%;
   background: var(--branco); color: var(--tinta);
-  box-shadow: 5px 5px 0 var(--tinta);
+  box-shadow: 5px 5px 0 var(--sombra);
   transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
 .btn:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; }
@@ -95,22 +97,22 @@
   font-family: 'Space Grotesk', sans-serif; font-weight: 700;
   font-size: 13px; padding: 10px 14px; text-transform: none; letter-spacing: 0;
 }
-.btn:not(:disabled):active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--tinta); }
+.btn:not(:disabled):active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--sombra); }
 .btn-fantasma:not(:disabled):active { transform: translate(2px, 2px); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .toolbar { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
 .toolbar .btn { width: auto; flex: 1; min-width: 120px; font-size: 13px; padding: 12px; }
 
 /* ---------- barra de XP ---------- */
-.xp-wrap { background: var(--branco); border: 3px solid var(--tinta); box-shadow: 6px 6px 0 var(--tinta); padding: 12px 14px; margin: 18px 0; }
+.xp-wrap { background: var(--branco); border: 3px solid var(--borda); box-shadow: 6px 6px 0 var(--sombra); padding: 12px 14px; margin: 18px 0; }
 .xp-top {
   display: flex; justify-content: space-between; align-items: baseline;
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
   text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; gap: 8px;
 }
-.xp-nivel { background: var(--lima); border: 2px solid var(--tinta); padding: 2px 8px; font-weight: 700; color: var(--contraste); }
+.xp-nivel { background: var(--lima); border: 2px solid var(--borda); padding: 2px 8px; font-weight: 700; color: var(--contraste); }
 .xp-pts { color: var(--cinza); }
-.xp-bar { height: 16px; background: var(--papel); border: 2px solid var(--tinta); overflow: hidden; }
+.xp-bar { height: 16px; background: var(--papel); border: 2px solid var(--borda); overflow: hidden; }
 .xp-fill {
   height: 100%;
   background: repeating-linear-gradient(45deg, var(--laranja), var(--laranja) 8px, var(--tinta) 8px, var(--tinta) 10px);
@@ -127,26 +129,26 @@
 .parada-dot {
   position: absolute; left: -46px; top: 14px;
   width: 38px; height: 38px;
-  border: 3px solid var(--tinta); display: flex; align-items: center; justify-content: center;
+  border: 3px solid var(--borda); display: flex; align-items: center; justify-content: center;
   font-family: 'Archivo Black', sans-serif; font-size: 14px;
   background: var(--branco); color: var(--tinta); z-index: 1;
-  box-shadow: 3px 3px 0 var(--tinta);
+  box-shadow: 3px 3px 0 var(--sombra);
 }
 .parada-dot--feito { background: var(--lima); }
 .parada-dot--atual { background: var(--laranja); animation: pulsa 1.6s ease-in-out infinite; }
 @keyframes pulsa {
-  0%, 100% { box-shadow: 3px 3px 0 var(--tinta); }
-  50% { box-shadow: 3px 3px 0 var(--tinta), 0 0 0 8px rgba(255, 77, 0, 0.25); }
+  0%, 100% { box-shadow: 3px 3px 0 var(--sombra); }
+  50% { box-shadow: 3px 3px 0 var(--sombra), 0 0 0 8px rgba(255, 77, 0, 0.25); }
 }
 .parada-card {
   width: 100%; text-align: left;
-  background: var(--branco); border: 3px solid var(--tinta); border-radius: 0;
-  box-shadow: 5px 5px 0 var(--tinta);
+  background: var(--branco); border: 3px solid var(--borda); border-radius: 0;
+  box-shadow: 5px 5px 0 var(--sombra);
   padding: 14px; color: var(--tinta); cursor: pointer;
   font-family: 'Space Grotesk', sans-serif;
   transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
-.parada-card:not(:disabled):hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--tinta); }
+.parada-card:not(:disabled):hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--sombra); }
 .parada-card:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
 .parada-card:disabled { opacity: 0.45; cursor: not-allowed; }
 .parada-tag {
@@ -162,22 +164,22 @@
 /* ---------- cards de curso (home) ---------- */
 .curso-card {
   width: 100%; text-align: left; display: block;
-  background: var(--branco); border: 3px solid var(--tinta); border-radius: 0;
-  box-shadow: 6px 6px 0 var(--tinta);
+  background: var(--branco); border: 3px solid var(--borda); border-radius: 0;
+  box-shadow: 6px 6px 0 var(--sombra);
   padding: 16px 14px; margin: 14px 0;
   color: var(--tinta); cursor: pointer;
   font-family: 'Space Grotesk', sans-serif;
   transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
-.curso-card:hover { transform: translate(2px, 2px); box-shadow: 4px 4px 0 var(--tinta); }
-.curso-card:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--tinta); }
+.curso-card:hover { transform: translate(2px, 2px); box-shadow: 4px 4px 0 var(--sombra); }
+.curso-card:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--sombra); }
 .curso-card:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
 .curso-cta {
   display: inline-block; margin-top: 12px;
   font-family: 'Archivo Black', sans-serif; font-size: 12px;
   text-transform: uppercase; letter-spacing: 1px;
   background: var(--laranja); color: var(--contraste);
-  border: 2px solid var(--tinta); padding: 6px 10px;
+  border: 2px solid var(--borda); padding: 6px 10px;
 }
 
 /* corre do dia (streak) */
@@ -190,14 +192,14 @@
 /* aviso de offline — modo busão ativo */
 .offline-badge {
   background: var(--preto); color: var(--lima);
-  border: 3px solid var(--tinta); box-shadow: 4px 4px 0 var(--tinta);
+  border: 3px solid var(--borda); box-shadow: 4px 4px 0 var(--sombra);
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
   letter-spacing: 1px; text-transform: uppercase;
   padding: 8px 12px; margin-bottom: 14px; text-align: center;
 }
 
 /* ---------- cartões ---------- */
-.card { background: var(--branco); border: 3px solid var(--tinta); box-shadow: 6px 6px 0 var(--tinta); padding: 18px 16px; margin: 16px 0; }
+.card { background: var(--branco); border: 3px solid var(--borda); box-shadow: 6px 6px 0 var(--sombra); padding: 18px 16px; margin: 16px 0; }
 .card-titulo {
   font-family: 'Archivo Black', sans-serif; font-size: 20px;
   margin: 0; text-transform: uppercase; color: var(--contraste); line-height: 1.4;
@@ -239,7 +241,7 @@
 
 .missao {
   background: var(--amarelo-claro);
-  border: 3px solid var(--tinta);
+  border: 3px solid var(--borda);
   padding: 10px 12px; font-size: 13.5px; margin-top: 14px;
   color: var(--tinta); line-height: 1.5;
 }
@@ -248,7 +250,7 @@
 .alvos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .alvo {
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  border: 2px solid var(--tinta);
+  border: 2px solid var(--borda);
   padding: 3px 8px; color: var(--tinta); background: var(--branco); font-weight: 700;
 }
 .alvo--ok { background: var(--lima); color: var(--contraste); }
@@ -257,15 +259,15 @@
 .opts { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
 .opt {
   text-align: left; background: var(--branco);
-  border: 3px solid var(--tinta);
+  border: 3px solid var(--borda);
   padding: 13px 14px; color: var(--tinta);
   font-family: 'Space Grotesk', sans-serif; font-size: 14.5px; font-weight: 500;
   cursor: pointer; display: flex; gap: 10px; align-items: flex-start;
-  box-shadow: 3px 3px 0 var(--tinta);
+  box-shadow: 3px 3px 0 var(--sombra);
   transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.12s ease;
 }
 .opt:not(:disabled):hover { background: var(--amarelo-claro); }
-.opt:not(:disabled):active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--tinta); }
+.opt:not(:disabled):active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--sombra); }
 .opt:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
 .opt:disabled { cursor: default; }
 .opt-letra {
@@ -278,7 +280,7 @@
 .opt--errada { background: var(--salmao); color: var(--contraste); }
 .opt--apagada { opacity: 0.4; }
 
-.feedback { border: 3px solid var(--tinta); box-shadow: 4px 4px 0 var(--tinta); padding: 14px; margin-top: 16px; animation: sobe 0.25s ease; color: var(--contraste); }
+.feedback { border: 3px solid var(--borda); box-shadow: 4px 4px 0 var(--sombra); padding: 14px; margin-top: 16px; animation: sobe 0.25s ease; color: var(--contraste); }
 @keyframes sobe { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .feedback--ok { background: var(--lima); }
 .feedback--ruim { background: var(--salmao); }
@@ -286,10 +288,10 @@
 .feedback-txt { font-size: 14px; line-height: 1.55; margin: 0; color: inherit; }
 
 /* ---------- editor de código ---------- */
-.editor { border: 3px solid var(--tinta); overflow: hidden; background: var(--preto); margin-top: 14px; box-shadow: 5px 5px 0 var(--tinta); }
+.editor { border: 3px solid var(--borda); overflow: hidden; background: var(--preto); margin-top: 14px; box-shadow: 5px 5px 0 var(--sombra); }
 .editor-topo {
   display: flex; align-items: center; gap: 8px;
-  background: var(--laranja); padding: 8px 10px; border-bottom: 3px solid var(--tinta);
+  background: var(--laranja); padding: 8px 10px; border-bottom: 3px solid var(--borda);
 }
 .dot { width: 12px; height: 12px; display: inline-block; }
 .d1 { background: var(--tinta); } .d2 { background: var(--branco); } .d3 { background: var(--lima); }
@@ -313,7 +315,7 @@
 .editor-ta:focus { box-shadow: inset 0 0 0 2px var(--laranja); }
 
 /* ---------- painéis (preview / terminal / lint) ---------- */
-.painel { border: 3px solid var(--tinta); margin-top: 12px; overflow: hidden; background: var(--branco); }
+.painel { border: 3px solid var(--borda); margin-top: 12px; overflow: hidden; background: var(--branco); }
 .painel-titulo {
   font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 2px;
   text-transform: uppercase; padding: 7px 10px;
@@ -344,8 +346,8 @@
 .lint-emoji { flex-shrink: 0; }
 
 .banner-ok {
-  border: 3px solid var(--tinta); background: var(--lima);
-  box-shadow: 4px 4px 0 var(--tinta);
+  border: 3px solid var(--borda); background: var(--lima);
+  box-shadow: 4px 4px 0 var(--sombra);
   padding: 13px; margin-top: 14px;
   font-family: 'Archivo Black', sans-serif; color: var(--contraste);
   text-transform: uppercase; text-align: center; font-size: 15px;
@@ -359,7 +361,7 @@
   margin: 14px 0 6px;
 }
 .encaixe-area {
-  min-height: 56px; border: 3px dashed var(--tinta);
+  min-height: 56px; border: 3px dashed var(--borda);
   padding: 8px; display: flex; flex-direction: column; gap: 6px;
   background: var(--creme);
 }
@@ -403,56 +405,138 @@
 /* ---------- temas ---------- */
 .temas { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 14px; }
 .tema-swatch {
-  width: 26px; height: 26px; border: 2px solid var(--tinta); cursor: pointer;
-  box-shadow: 2px 2px 0 var(--tinta); padding: 0;
+  width: 26px; height: 26px; border: 2px solid var(--borda); cursor: pointer;
+  box-shadow: 2px 2px 0 var(--sombra); padding: 0;
   transition: transform 0.06s ease, box-shadow 0.06s ease;
 }
-.tema-swatch:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--tinta); }
+.tema-swatch:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--sombra); }
 .tema-swatch--ativo { outline: 3px solid var(--tinta); outline-offset: 2px; }
 .tema-swatch:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
 
 .parada-dot--feito, .parada-dot--atual { color: var(--contraste); }
 .card--cor, .card--cor .card-txt, .card--cor .card-titulo, .card--cor .placar, .card--cor .placar-sub { color: var(--contraste); }
 
-/* Noite — modo escuro
-   Paleta calibrada pra contraste AA: texto secundário mais claro,
-   azul mais luminoso (era ilegível em texto pequeno) e textura
-   de fundo bem mais discreta pra não brigar com o conteúdo. */
+/* Noite — dark neobrutalista
+   Texto, borda e sombra têm papéis separados. As superfícies sobem em
+   camadas azul-grafite; bordas frias desenham os blocos e sombras pretas
+   mantêm o peso brutalista sem produzir o efeito de imagem negativa. */
 .ddc--noite {
-  --papel: #131318;
-  --tinta: #F7F4EA;
-  --branco: #1E1E26;
-  --preto: #0B0B0F;
-  --laranja: #FF6A26;
-  --lima: #C3F851;
-  --azul: #9D9DFF;
-  --vermelho: #FF7A6E;
-  --salmao: #FFA894;
-  --cinza: #ABA69A;
-  --amarelo-claro: #34301D;
-  --creme: #26251C;
-  --tracinho: #45454F;
-  --lint-erro: #FFA49B;
-  --lint-aviso: #FFCC7A;
-  --lint-dica: #EAE2A6;
-  --textura-linha: rgba(242, 239, 228, 0.055);
-  --textura-ponto: rgba(242, 239, 228, 0.06);
-  --textura-luz: rgba(255, 255, 255, 0.03);
+  --papel: #0F1118;
+  --tinta: #F5F7FF;
+  --borda: #737E98;
+  --sombra: #05060A;
+  --branco: #1B1F2B;
+  --preto: #080A0F;
+  --laranja: #FF7545;
+  --lima: #C7FF4A;
+  --azul: #A7AFFF;
+  --vermelho: #FF7185;
+  --salmao: #FF9B8A;
+  --cinza: #C3C8D6;
+  --amarelo-claro: #282718;
+  --creme: #202432;
+  --tracinho: #4C566E;
+  --lint-erro: #FF9AAA;
+  --lint-aviso: #FFD080;
+  --lint-dica: #E8F5B2;
+  --textura-linha: rgba(122, 136, 173, 0.09);
+  --textura-ponto: rgba(167, 175, 255, 0.11);
+  --textura-luz: rgba(199, 255, 74, 0.025);
 }
 
-/* ajustes pontuais do Noite: onde texto claro/escuro precisa inverter */
+/* Hierarquia das superfícies e acentos do tema noturno. */
+.ddc--noite .letreiro,
+.ddc--noite .card,
+.ddc--noite .curso-card,
+.ddc--noite .parada-card,
+.ddc--noite .xp-wrap,
+.ddc--noite .painel {
+  background: #1B1F2B;
+}
+.ddc--noite .letreiro,
+.ddc--noite .curso-card,
+.ddc--noite .card,
+.ddc--noite .xp-wrap {
+  box-shadow: 7px 7px 0 var(--sombra);
+}
+.ddc--noite .letreiro {
+  border-color: #A3ACC2;
+}
+.ddc--noite .letreiro-rota {
+  background: #080A0F;
+  color: var(--laranja);
+}
+.ddc--noite .letreiro-sub {
+  border-color: #080A0F;
+}
+.ddc--noite .curso-card:hover,
+.ddc--noite .parada-card:not(:disabled):hover {
+  background: #222838;
+}
+.ddc--noite .curso-card--diario {
+  background: #242718;
+  border-color: #899653;
+}
+.ddc--noite .curso-card--diario .parada-desc {
+  color: #D4D8C4;
+}
+.ddc--noite .parada-tag,
+.ddc--noite .pager,
+.ddc--noite .encaixe-label {
+  color: #B6BCFF;
+}
+.ddc--noite .parada-desc,
+.ddc--noite .xp-pts,
+.ddc--noite .footer-note {
+  color: var(--cinza);
+}
+.ddc--noite .btn-fantasma {
+  background: #171B25;
+  border-color: #59647D;
+}
+.ddc--noite .btn:not(.btn-fantasma) {
+  border-color: #080A0F;
+}
+.ddc--noite .opt {
+  background: #202532;
+}
+.ddc--noite .opt:not(:disabled):hover {
+  background: #2B3140;
+}
+.ddc--noite .missao,
+.ddc--noite .projeto-autoria {
+  background: #2A2919;
+}
+.ddc--noite .missao--dica,
+.ddc--noite .projeto-criterio,
+.ddc--noite .projeto-checklist li {
+  background: #202432;
+}
+.ddc--noite .encaixe-area {
+  background: #151923;
+}
+.ddc--noite .tema-swatch--ativo {
+  outline-color: var(--lima);
+}
+.ddc--noite .offline-badge {
+  border-color: #080A0F;
+}
+
+/* Texto escuro sobre cores luminosas de ação e feedback. */
 .ddc--noite .btn-azul { color: var(--contraste); }
 .ddc--noite .painel--azul .painel-titulo { color: var(--contraste); }
 .ddc--noite .painel--erro .painel-titulo { color: var(--contraste); }
-.ddc--noite .parada-dot { box-shadow: 3px 3px 0 rgba(247, 244, 234, 0.35); }
-.ddc--noite .peca { box-shadow: 3px 3px 0 #45454F; border-color: #2E2E38; }
-.ddc--noite .editor-nums { color: #8F8B80; border-right-color: #2E2E38; }
-.ddc--noite .terminal { border-top-color: #2E2E38; }
+.ddc--noite .parada-dot { box-shadow: 3px 3px 0 var(--sombra); }
+.ddc--noite .peca { box-shadow: 3px 3px 0 var(--sombra); border-color: #59647D; }
+.ddc--noite .editor-nums { color: #929AAD; border-right-color: #303748; }
+.ddc--noite .terminal { border-top-color: #303748; }
 
 /* Vapor — rosa/roxo/menta */
 .ddc--vapor {
   --papel: #FBE8EF;
   --tinta: #23102E;
+  --borda: #23102E;
+  --sombra: #23102E;
   --branco: #FFFFFF;
   --preto: #23102E;
   --laranja: #FF2E88;
@@ -472,6 +556,8 @@
 .ddc--taxi {
   --papel: #F5F1DC;
   --tinta: #0D0D0D;
+  --borda: #0D0D0D;
+  --sombra: #0D0D0D;
   --branco: #FFFFFF;
   --preto: #0D0D0D;
   --laranja: #FFB800;
@@ -506,16 +592,16 @@
 @keyframes ddc-listras { to { background-position: 14.14px 0; } }
 
 /* botões: hover afunda um pouco, active afunda tudo */
-.btn:not(:disabled):hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--tinta); }
+.btn:not(:disabled):hover { transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--sombra); }
 .btn-fantasma:not(:disabled):hover { transform: translate(1px, 1px); box-shadow: none; }
-.btn:not(:disabled):active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--tinta); }
+.btn:not(:disabled):active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--sombra); }
 .btn-fantasma:not(:disabled):active { transform: translate(2px, 2px); }
 
 /* CTA da home respirando */
 .btn-pulsa { animation: ddc-chama 1.6s ease-in-out infinite; }
 @keyframes ddc-chama {
-  0%, 100% { box-shadow: 5px 5px 0 var(--tinta); }
-  50% { box-shadow: 9px 9px 0 var(--tinta); }
+  0%, 100% { box-shadow: 5px 5px 0 var(--sombra); }
+  50% { box-shadow: 9px 9px 0 var(--sombra); }
 }
 
 /* erro treme, acerto dá um pulo */

@@ -51,4 +51,10 @@ O caminho recomendado é:
 npm test
 ```
 
-O comando valida a integridade do currículo e gera o build de produção compatível com a configuração legada do Switch.
+O comando valida a integridade do currículo e gera o build web de produção.
+
+## Builds por plataforma
+
+- `npm run dev`: aplicação web com Framer Motion real.
+- `npm run build`: produção web com todas as animações.
+- `npm run build:switch`: configuração legada separada, usando o shim sem animações.

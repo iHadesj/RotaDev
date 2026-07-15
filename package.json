@@ -11,7 +11,7 @@
     "test:curriculum": "node scripts/validate-curriculum.mjs",
     "preview": "vite preview",
     "sync:switch": "node scripts/sync-romfs.mjs",
-    "build:switch": "vite build && node scripts/sync-romfs.mjs"
+    "build:switch": "vite build --config vite.switch.config.js && node scripts/sync-romfs.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
