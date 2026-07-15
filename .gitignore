@@ -1,1 +1,8 @@
 /node_modules
+
+# Homebrew Switch — artefatos de build (gerados por make/npm)
+/switch/build
+/switch/romfs/html-document
+/switch/*.nro
+/switch/*.elf
+/switch/*.nacp
