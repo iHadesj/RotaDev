@@ -7,6 +7,7 @@ import { TelaCorreDoDia } from "./pages/TelaCorreDoDia/index.jsx";
 import { TelaDesafios } from "./pages/TelaDesafios/index.jsx";
 import { TelaHome } from "./pages/TelaHome/index.jsx";
 import { TelaLicao } from "./pages/TelaLicao/index.jsx";
+import { TelaPratica } from "./pages/TelaPratica/index.jsx";
 import { TelaResultado } from "./pages/TelaResultado/index.jsx";
 import { TelaTrilha } from "./pages/TelaTrilha/index.jsx";
 import { calcXP, carregaDiario, carregarProgresso, hojeStr, registraDiario, salvaDiario, salvarProgresso, scoresDoCurso } from "./services/progressService.js";
@@ -185,8 +186,12 @@ export default function DevDoCorre() {
                   diario={diario}
                   cursoAtual={curso}
                   onCorreDoDia={() => setTela("diario")}
+                  onTreino={() => setTela("pratica")}
                   onEscolher={escolherCurso}
                 />
+              )}
+              {tela === "pratica" && (
+                <TelaPratica onVoltar={() => setTela("home")} />
               )}
               {tela === "diario" && (
                 <TelaCorreDoDia

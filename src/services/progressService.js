@@ -36,6 +36,27 @@ export function scoresDoCurso(progresso, cursoId) {
   );
 }
 
+/* ---------- MODO TREINO 💪 · problemas resolvidos ----------
+   Progresso próprio, fora dos cursos: { resolvidos: { id: true } }.
+   Só marca quem passou SEM colar gabarito. */
+
+const PRATICA_KEY = "dev_do_corre_pratica_v1";
+
+export function carregaPratica() {
+  try {
+    return JSON.parse(localStorage.getItem(PRATICA_KEY)) || { resolvidos: {} };
+  } catch (e) {
+    return { resolvidos: {} };
+  }
+}
+export function salvaPratica(p) {
+  try {
+    localStorage.setItem(PRATICA_KEY, JSON.stringify(p));
+  } catch (e) {
+    /* sem storage, o progresso vive só na sessão */
+  }
+}
+
 /* ---------- CORRE DO DIA · streak 🔥 ---------- */
 
 const DIARIO_KEY = "dev_do_corre_diario_v1";

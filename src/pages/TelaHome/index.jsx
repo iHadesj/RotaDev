@@ -9,14 +9,14 @@ import {
   streakAtual,
 } from "../../services/progressService.js";
 
-export function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onEscolher }) {
+export function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onTreino, onEscolher }) {
   const streak = streakAtual(diario);
   const feito = feitoHoje(diario);
   return (
     <motion.div variants={listaStagger} initial="inicial" animate="entra">
       <Letreiro
         rota="TERMINAL DE PARTIDA · ESCOLHE TUA LINHA"
-        destino={"DEV DO\nCORRE"}
+        destino={"ROTA \nDEV"}
         sub="dois cursos · um destino: Faria Lima"
       />
       <motion.div variants={itemSobe}>
@@ -36,6 +36,20 @@ export function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onEscolh
                 ". Funciona sem internet: túnel, 3G ruim, tanto faz."}
           </p>
           {!feito && <span className="curso-cta">Fazer o corre de hoje 🔥</span>}
+        </button>
+      </motion.div>
+      <motion.div variants={itemSobe}>
+        <button className="curso-card curso-card--treino" onClick={onTreino}>
+          <span className="parada-tag">
+            <span>MODO TREINO · PREPARA PRO MERCADO 💪</span>
+          </span>
+          <p className="parada-nome">Desafios de código de verdade</p>
+          <p className="parada-desc">
+            Sem trilha, sem ordem: escolhe um problema estilo entrevista técnica,
+            escreve a função em JS ou TS num editor com lint, roda a bateria de
+            testes e vê caso a caso passar. Igual teste de vaga júnior.
+          </p>
+          <span className="curso-cta">Treinar código →</span>
         </button>
       </motion.div>
       <motion.div className="card" variants={itemSobe}>

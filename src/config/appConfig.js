@@ -6,7 +6,7 @@ export const CURSO_KEY = "dev_do_corre_curso_v1";
 
 export const TEMAS = [
   { id: "padrao", nome: "5X-Sul (claro)", cor: "#FF4D00", papel: "#EFE9DC" },
-  { id: "noite", nome: "Noite neobrutalista", cor: "#FF7545", papel: "#0F1118" },
+  { id: "noite", nome: "Noite neobrutalista", cor: "#FF7545", papel: "#14161F" },
   { id: "vapor", nome: "Vapor (rosa)", cor: "#FF2E88", papel: "#FBE8EF" },
   { id: "taxi", nome: "Táxi (amarelo)", cor: "#FFB800", papel: "#F5F1DC" },
 ];

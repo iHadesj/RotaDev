@@ -288,31 +288,76 @@
 .feedback-txt { font-size: 14px; line-height: 1.55; margin: 0; color: inherit; }
 
 /* ---------- editor de código ---------- */
-.editor { border: 3px solid var(--borda); overflow: hidden; background: var(--preto); margin-top: 14px; box-shadow: 5px 5px 0 var(--sombra); }
+/* ---------- Mini-IDE · tema Dracula (fixo, independe do tema do app) ----------
+   Paleta oficial: bg #282a36, fg #f8f8f2, seleção #44475a, comentário
+   #6272a4, roxo #bd93f9, rosa #ff79c6, verde #50fa7b, amarelo #f1fa8c,
+   ciano #8be9fd. As camadas .editor-ta (texto transparente, só o cursor)
+   e .editor-hl-in (código colorido) TÊM QUE compartilhar font/padding/
+   line-height pra ficarem alinhadas. Mexeu numa, mexe na outra. */
+.editor {
+  --drac-bg: #282a36; --drac-fg: #f8f8f2;
+  --edi-fonte: 'JetBrains Mono', monospace; --edi-tam: 13px;
+  --edi-lh: 1.6; --edi-pad-y: 12px; --edi-pad-x: 14px;
+  border: 3px solid var(--borda); overflow: hidden; background: var(--drac-bg);
+  margin-top: 14px; box-shadow: 5px 5px 0 var(--sombra);
+}
 .editor-topo {
   display: flex; align-items: center; gap: 8px;
-  background: var(--laranja); padding: 8px 10px; border-bottom: 3px solid var(--borda);
+  background: #21222c; padding: 8px 10px; border-bottom: 1px solid #191a21;
 }
-.dot { width: 12px; height: 12px; display: inline-block; }
-.d1 { background: var(--tinta); } .d2 { background: var(--branco); } .d3 { background: var(--lima); }
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.d1 { background: #ff5555; } .d2 { background: #f1fa8c; } .d3 { background: #50fa7b; }
 .editor-arquivo {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  color: var(--contraste); margin-left: 6px; letter-spacing: 1px; font-weight: 700;
+  font-family: var(--edi-fonte); font-size: 11px;
+  color: #f8f8f2; margin-left: 6px; letter-spacing: 1px; font-weight: 700;
 }
 .editor-corpo { display: flex; align-items: stretch; }
 .editor-nums {
-  margin: 0; padding: 12px 8px; font-family: 'JetBrains Mono', monospace;
-  font-size: 13px; line-height: 1.55; color: var(--cinza); text-align: right;
-  user-select: none; background: var(--preto); border-right: 1px solid #2a2a2a;
-  min-width: 36px; overflow: hidden;
+  margin: 0; padding: var(--edi-pad-y) 8px; font-family: var(--edi-fonte);
+  font-size: var(--edi-tam); line-height: var(--edi-lh); color: #6272a4;
+  text-align: right; user-select: none; background: #21222c;
+  border-right: 1px solid #191a21; min-width: 40px; overflow: hidden;
+}
+.editor-nums-in { white-space: pre; will-change: transform; }
+.editor-area {
+  position: relative; flex: 1; height: 300px; overflow: hidden;
+}
+/* camada colorida (atrás) e textarea (frente) precisam bater exatamente */
+.editor-hl, .editor-ta {
+  margin: 0; box-sizing: border-box;
+  font-family: var(--edi-fonte); font-size: var(--edi-tam);
+  line-height: var(--edi-lh); tab-size: 2; -moz-tab-size: 2;
+  padding: var(--edi-pad-y) var(--edi-pad-x);
+  white-space: pre; word-break: normal; overflow-wrap: normal;
+}
+.editor-hl {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  padding: 0; background: var(--drac-bg);
+}
+.editor-hl-in {
+  display: block; will-change: transform;
+  padding: var(--edi-pad-y) var(--edi-pad-x);
+  font-family: var(--edi-fonte); font-size: var(--edi-tam);
+  line-height: var(--edi-lh); white-space: pre; color: var(--drac-fg);
 }
 .editor-ta {
-  flex: 1; background: transparent; border: 0; color: #F5F1E4;
-  font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.55;
-  padding: 12px; min-height: 230px; resize: vertical; outline: none;
-  white-space: pre; overflow: auto; tab-size: 2; caret-color: var(--laranja);
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  background: transparent; border: 0; outline: none; resize: none;
+  color: transparent; caret-color: #f8f8f2; overflow: auto;
 }
-.editor-ta:focus { box-shadow: inset 0 0 0 2px var(--laranja); }
+.editor-ta::selection { background: #44475a; }
+.editor-ta::-moz-selection { background: #44475a; }
+.editor-area:focus-within { box-shadow: inset 0 0 0 2px #bd93f9; }
+
+/* cores dos tokens (Dracula) */
+.tk-com { color: #6272a4; font-style: italic; }
+.tk-str { color: #f1fa8c; }
+.tk-num { color: #bd93f9; }
+.tk-kw  { color: #ff79c6; }
+.tk-lit { color: #bd93f9; font-style: italic; }
+.tk-fn  { color: #50fa7b; }
+.tk-cls { color: #8be9fd; font-style: italic; }
+.tk-var { color: #f8f8f2; }
 
 /* ---------- painéis (preview / terminal / lint) ---------- */
 .painel { border: 3px solid var(--borda); margin-top: 12px; overflow: hidden; background: var(--branco); }
@@ -421,11 +466,11 @@
    camadas azul-grafite; bordas frias desenham os blocos e sombras pretas
    mantêm o peso brutalista sem produzir o efeito de imagem negativa. */
 .ddc--noite {
-  --papel: #0F1118;
+  --papel: #14161F;
   --tinta: #F5F7FF;
   --borda: #737E98;
-  --sombra: #05060A;
-  --branco: #1B1F2B;
+  --sombra: #0B0D15;
+  --branco: #232839;
   --preto: #080A0F;
   --laranja: #FF7545;
   --lima: #C7FF4A;
@@ -451,7 +496,7 @@
 .ddc--noite .parada-card,
 .ddc--noite .xp-wrap,
 .ddc--noite .painel {
-  background: #1B1F2B;
+  background: #232839;
 }
 .ddc--noite .letreiro,
 .ddc--noite .curso-card,
@@ -471,7 +516,7 @@
 }
 .ddc--noite .curso-card:hover,
 .ddc--noite .parada-card:not(:disabled):hover {
-  background: #222838;
+  background: #2E3446;
 }
 .ddc--noite .curso-card--diario {
   background: #242718;
@@ -528,7 +573,6 @@
 .ddc--noite .painel--erro .painel-titulo { color: var(--contraste); }
 .ddc--noite .parada-dot { box-shadow: 3px 3px 0 var(--sombra); }
 .ddc--noite .peca { box-shadow: 3px 3px 0 var(--sombra); border-color: #59647D; }
-.ddc--noite .editor-nums { color: #929AAD; border-right-color: #303748; }
 .ddc--noite .terminal { border-top-color: #303748; }
 
 /* Vapor — rosa/roxo/menta */
@@ -613,6 +657,90 @@
   40% { transform: translateX(7px); }
   60% { transform: translateX(-5px); }
   80% { transform: translateX(5px); }
+}
+
+/* ============================ MODO TREINO 💪 ============================ */
+
+.curso-card--treino { background: var(--branco); border-style: dashed; }
+
+/* nível ao lado do tema no topo do desafio */
+.pratica-nivel {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--laranja);
+}
+
+/* toggle JS / TS */
+.lang-switch { display: flex; gap: 8px; margin: 14px 0 4px; }
+.lang-btn {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  border: 2px solid var(--borda); background: var(--branco); color: var(--tinta);
+  padding: 6px 12px; cursor: pointer;
+}
+.lang-btn--ativa { background: var(--azul); color: #fff; }
+.lang-btn:focus-visible { outline: 3px solid var(--laranja); outline-offset: 2px; }
+
+/* placar de casos no título do painel */
+.teste-placar { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--laranja); }
+.teste-placar--ok { color: var(--contraste); background: var(--lima); padding: 0 6px; }
+
+/* console cru do modo treino */
+.con-linha { display: block; }
+.con-log { color: #F5F1E4; }
+.con-warn { color: #FFD080; }
+.con-error { color: #FF9AAA; }
+
+/* cada caso de teste */
+.teste-caso {
+  padding: 10px 12px; border-bottom: 1px dashed var(--tracinho);
+  border-left: 4px solid var(--tracinho);
+}
+.teste-caso:last-of-type { border-bottom: 0; }
+.teste-caso--ok { border-left-color: var(--lima); }
+.teste-caso--falhou { border-left-color: var(--laranja); }
+.teste-caso-topo { display: flex; gap: 8px; align-items: center; }
+.teste-marca { font-size: 15px; }
+.teste-chamada {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  color: var(--tinta); word-break: break-word;
+}
+.teste-detalhe {
+  display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 8px 0 0 23px;
+  font-size: 12.5px; color: var(--tinta); line-height: 1.5;
+}
+.teste-detalhe code {
+  font-family: 'JetBrains Mono', monospace; background: var(--papel);
+  border: 1px solid var(--tracinho); padding: 0 5px; word-break: break-word;
+}
+
+/* lista de problemas do modo treino */
+.pratica-placar {
+  display: inline-block; margin-top: 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  background: var(--lima); color: var(--contraste);
+  border: 2px solid var(--borda); padding: 3px 9px;
+}
+.pratica-trilha-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--azul);
+  margin: 20px 2px 8px;
+}
+.pratica-item {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  background: var(--branco); border: 3px solid var(--borda);
+  box-shadow: 4px 4px 0 var(--sombra);
+  padding: 12px 14px; margin-bottom: 10px; cursor: pointer;
+  color: var(--tinta); font-family: 'Space Grotesk', sans-serif;
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+.pratica-item:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--sombra); }
+.pratica-item:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.pratica-item--ok { background: var(--amarelo-claro); }
+.pratica-item-check { font-size: 18px; }
+.pratica-item-corpo { display: flex; flex-direction: column; gap: 2px; }
+.pratica-item-titulo { font-weight: 700; font-size: 15px; }
+.pratica-item-meta {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--laranja);
 }
 .opt--pula { animation: ddc-pula 0.45s ease; }
 @keyframes ddc-pula {

@@ -580,4 +580,63 @@ export function montaSrcDocWeb(codigo, lang, htmlBase, preambulo) {
   ].join("\n");
 }
 
+/* ---------- SANDBOX 3: CASOS DE TESTE (função + entrada→saída) ----------
+   Modo Treino: o aluno escreve uma função NOMEADA e a gente roda uma
+   bateria de casos contra ela, tipo LeetCode/Codewars. O código do aluno
+   e o "harness" (que chama a função e compara) vão no MESMO <script> pra
+   a função ficar no escopo — em ts o Babel transpila os dois juntos.
+   Loop infinito trava a thread do iframe (nenhum timer interno dispara),
+   então quem mata é o WATCHDOG no componente pai (ver DesafioTeste). */
+export function montaSrcDocTeste(codigo, lang, nomeFuncao, casos) {
+  const casosJson = escapaScript(JSON.stringify(casos || []));
+  const abreScript =
+    lang === "ts"
+      ? '<script type="text/babel" data-presets="typescript">'
+      : "<script>";
+  const babel = lang === "ts" ? tagLib(LIB_BABEL) : "";
+  return [
+    '<!DOCTYPE html><html><head><meta charset="utf-8"/>',
+    babel,
+    "<script>",
+    'window.onerror=function(m){parent.postMessage({ddc:1,tipo:"teste-erro",msg:String(m)},"*");return true;};',
+    // espelha o console do aluno pra fora (log/warn/error) — assim quem
+    // quer depurar com console.log vê a saída crua no painel Console
+    'function _fmt(args){return Array.prototype.slice.call(args).map(function(x){try{return typeof x==="object"?JSON.stringify(x):String(x)}catch(e){return String(x)}}).join(" ");}',
+    "var _log=console.log,_warn=console.warn,_err=console.error;",
+    'console.log=function(){parent.postMessage({ddc:1,tipo:"teste-log",nivel:"log",texto:_fmt(arguments)},"*");_log.apply(console,arguments);};',
+    // o Babel-standalone cospe um warn "in-browser transformer" toda vez —
+    // isso é ruído nosso, não do aluno, então segura esse específico
+    'console.warn=function(){var _t=_fmt(arguments);if(!/in-browser Babel|babeljs\\.io/i.test(_t)){parent.postMessage({ddc:1,tipo:"teste-log",nivel:"warn",texto:_t},"*");}_warn.apply(console,arguments);};',
+    'console.error=function(){parent.postMessage({ddc:1,tipo:"teste-log",nivel:"error",texto:_fmt(arguments)},"*");_err.apply(console,arguments);};',
+    "</" + "script>",
+    "</head><body>",
+    abreScript,
+    "// ----- código do aluno -----",
+    escapaScript(codigo),
+    "// ----- harness dos casos de teste -----",
+    ";(function(){",
+    '  function P(o){o.ddc=1;parent.postMessage(o,"*");}',
+    "  var CASOS = " + casosJson + ";",
+    '  if (typeof ' + nomeFuncao + ' !== "function") {',
+    '    P({tipo:"teste-erro",msg:"SEM_FUNCAO:' + nomeFuncao + '"});return;',
+    "  }",
+    "  var fn = " + nomeFuncao + ";",
+    '  P({tipo:"teste-inicio",total:CASOS.length});',
+    "  for (var i = 0; i < CASOS.length; i++) {",
+    "    var c = CASOS[i];",
+    "    try {",
+    "      var rec = fn.apply(null, c.entrada);",
+    "      var recS = JSON.stringify(rec);",
+    "      var espS = JSON.stringify(c.esperado);",
+    '      P({tipo:"teste-caso",idx:i,passou:recS===espS,recebido:recS===undefined?"undefined":recS,esperado:espS});',
+    "    } catch (e) {",
+    '      P({tipo:"teste-caso",idx:i,passou:false,erro:true,recebido:"💥 "+String((e&&e.message)||e),esperado:JSON.stringify(c.esperado)});',
+    "    }",
+    "  }",
+    '  P({tipo:"teste-fim"});',
+    "})();",
+    "</" + "script></body></html>",
+  ].join("\n");
+}
+
 /* ============================ ESTILO ============================ */

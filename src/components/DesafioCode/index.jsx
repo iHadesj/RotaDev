@@ -172,6 +172,7 @@ export function DesafioCode({ d, onResolvido }) {
           if (ehJava && javaOk) setJavaOk(false);
         }}
         arquivo={d.arquivo}
+        lang={d.lang}
       />
 
       <div className="toolbar">
