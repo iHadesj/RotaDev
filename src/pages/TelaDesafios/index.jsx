@@ -4,7 +4,7 @@ import { springMedio } from "../../config/appConfig.js";
 import { NOME_TIPO_DESAFIO } from "../../config/challengeConfig.js";
 import { DesafioCode, DesafioEncaixe, DesafioQuiz } from "../../components/challenges/index.jsx";
 import { EntregaProjeto } from "../../components/EntregaProjeto/index.jsx";
-import { Letreiro } from "../../components/ui/index.jsx";
+import { Icon, Letreiro } from "../../components/ui/index.jsx";
 
 export function TelaDesafios({ modulo, onFim, onVoltar }) {
   const [qi, setQi] = useState(0);
@@ -67,9 +67,11 @@ export function TelaDesafios({ modulo, onFim, onVoltar }) {
             transition={springMedio}
             style={{ display: "inline-block" }}
           >
-            ✔ {acertos}
+            <Icon name="check" className="icon--leading" />{acertos}
           </motion.span>
-          {streak >= 2 && <span className="quiz-streak"> · 🔥x{streak}</span>}
+          {streak >= 2 && (
+            <span className="quiz-streak"> · <Icon name="flame" />x{streak}</span>
+          )}
         </span>
       </div>
       <AnimatePresence mode="wait">

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { CURSO_KEY, TEMAS, TEMA_KEY, telaVariants } from "./config/appConfig.js";
 import { CURSOS } from "./data/curriculum.js";
-import { Letreiro } from "./components/ui/index.jsx";
+import { Icon, Letreiro } from "./components/ui/index.jsx";
 import { TelaCorreDoDia } from "./pages/TelaCorreDoDia/index.jsx";
 import { TelaDesafios } from "./pages/TelaDesafios/index.jsx";
 import { TelaHome } from "./pages/TelaHome/index.jsx";
@@ -140,7 +140,8 @@ export default function DevDoCorre() {
         <div className="ddc-shell">
           {!online && (
             <div className="offline-badge" role="status">
-              🚇 Sem sinal — modo busão ativo, tudo segue funcionando
+              <Icon name="offline" className="icon--leading" />
+              Sem sinal — modo busão ativo, tudo segue funcionando
             </div>
           )}
           <div className="temas" role="group" aria-label="Tema de cores">

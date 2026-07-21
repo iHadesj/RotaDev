@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { springMedio } from "../../config/appConfig.js";
 import { useInstalarApp } from "../../hooks/useInstalarApp.js";
+import { Icon } from "../ui/index.jsx";
 
 export function CardInstalar() {
   const { instalado, podeDireto, ehIOS, instalar } = useInstalarApp();
@@ -16,7 +17,8 @@ export function CardInstalar() {
         className="btn btn-lima"
         onClick={() => (podeDireto ? instalar() : setGuiaIOS((v) => !v))}
       >
-        📲 Instalar o app na tela inicial
+        <Icon name="install" className="icon--leading" />
+        Instalar o app na tela inicial
       </button>
       {guiaIOS && !podeDireto && (
         <motion.div
@@ -33,7 +35,8 @@ export function CardInstalar() {
           <br />
           3. Desce e toca em <b>“Adicionar à Tela de Início”</b>
           <br />
-          Pronto: vira app, com ícone e tudo — e funciona offline no busão. 🚌
+          Pronto: vira app, com ícone e tudo — e funciona offline no busão.
+          <Icon name="bus" className="icon--trailing" />
         </motion.div>
       )}
     </>

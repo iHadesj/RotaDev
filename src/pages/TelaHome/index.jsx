@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { itemSobe, listaStagger } from "../../config/appConfig.js";
 import { CardInstalar } from "../../components/CardInstalar/index.jsx";
-import { Letreiro } from "../../components/ui/index.jsx";
+import { Icon, Letreiro } from "../../components/ui/index.jsx";
 import { CURSOS } from "../../data/curriculum.js";
 import {
   feitoHoje,
@@ -22,12 +22,19 @@ export function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onTreino
       <motion.div variants={itemSobe}>
         <button className="curso-card curso-card--diario" onClick={onCorreDoDia}>
           <span className="parada-tag">
-            <span>CORRE DO DIA · MODO BUSÃO 🚌</span>
+            <span className="icon-line">
+              <Icon name="bus" /> CORRE DO DIA · MODO BUSÃO
+            </span>
             <span className="diario-fogo">
-              {streak > 0 ? "🔥 x" + streak : "🔥 apagado"}
+              <Icon name="flame" className="icon--leading" />
+              {streak > 0 ? "x" + streak : "apagado"}
             </span>
           </span>
-          <p className="parada-nome">{feito ? "Feito! Volta amanhã ✓" : "10 min no trajeto"}</p>
+          <p className="parada-nome">
+            {feito ? (
+              <><Icon name="check" className="icon--leading" />Feito! Volta amanhã</>
+            ) : "10 min no trajeto"}
+          </p>
           <p className="parada-desc">
             {feito
               ? "O fogo de hoje tá garantido. Amanhã tem mais — ou refaz de revisão."
@@ -35,13 +42,19 @@ export function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onTreino
                 cursoAtual.titulo +
                 ". Funciona sem internet: túnel, 3G ruim, tanto faz."}
           </p>
-          {!feito && <span className="curso-cta">Fazer o corre de hoje 🔥</span>}
+          {!feito && (
+            <span className="curso-cta">
+              Fazer o corre de hoje <Icon name="flame" className="icon--trailing" />
+            </span>
+          )}
         </button>
       </motion.div>
       <motion.div variants={itemSobe}>
         <button className="curso-card curso-card--treino" onClick={onTreino}>
           <span className="parada-tag">
-            <span>MODO TREINO · PREPARA PRO MERCADO 💪</span>
+            <span className="icon-line">
+              <Icon name="muscle" /> MODO TREINO · PREPARA PRO MERCADO
+            </span>
           </span>
           <p className="parada-nome">Desafios de código de verdade</p>
           <p className="parada-desc">
@@ -49,7 +62,9 @@ export function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onTreino
             escreve a função em JS ou TS num editor com lint, roda a bateria de
             testes e vê caso a caso passar. Igual teste de vaga júnior.
           </p>
-          <span className="curso-cta">Treinar código →</span>
+          <span className="curso-cta">
+            Treinar código <Icon name="arrowRight" className="icon--trailing" />
+          </span>
         </button>
       </motion.div>
       <motion.div className="card" variants={itemSobe}>
@@ -78,10 +93,11 @@ export function TelaHome({ progresso, diario, cursoAtual, onCorreDoDia, onTreino
                 )}
               </span>
               <p className="parada-nome">{c.titulo}</p>
-              <p className="parada-local">🚌 {c.sub}</p>
+              <p className="parada-local"><Icon name="bus" /> {c.sub}</p>
               <p className="parada-desc">{c.desc}</p>
               <span className="curso-cta">
-                {comecou ? "Continuar o corre →" : "Começar o corre →"}
+                {comecou ? "Continuar o corre" : "Começar o corre"}
+                <Icon name="arrowRight" className="icon--trailing" />
               </span>
             </button>
           </motion.div>

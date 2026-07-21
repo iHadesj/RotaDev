@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { estouraConfete, springMedio } from "../../config/appConfig.js";
 import { lintDelimitadores, lintHTML, lintJava, lintJS, lintJSX, montaSrcDoc, montaSrcDocWeb, preCarregaLibs, traduzErro } from "../../utils/challengeRuntime.js";
-import { Editor, PainelLint } from "../ui/index.jsx";
+import { Editor, Icon, PainelLint } from "../ui/index.jsx";
 
 export function DesafioCode({ d, onResolvido }) {
   const [codigo, setCodigo] = useState(d.starter);
@@ -136,7 +136,7 @@ export function DesafioCode({ d, onResolvido }) {
       {d.contexto && <p className="enunciado">{d.contexto}</p>}
 
       <div className="missao">
-        <b>🎯 Missão:</b> {d.missao}
+        <b><Icon name="target" className="icon--leading" />Missão:</b> {d.missao}
         {!ehJava && d.esperado && (
           <div className="alvos">
             {d.esperado.map((t) => {
@@ -177,7 +177,7 @@ export function DesafioCode({ d, onResolvido }) {
 
       <div className="toolbar">
         <button className="btn btn-laranja" onClick={rodar}>
-          ▶ Rodar
+          <Icon name="play" className="icon--leading" /> Rodar
         </button>
         {d.dicas && d.dicas.length > 0 && (
           <button
@@ -186,7 +186,7 @@ export function DesafioCode({ d, onResolvido }) {
               setDicaIdx((i) => Math.min(i + 1, d.dicas.length - 1))
             }
           >
-            💡 Dica{" "}
+            <Icon name="idea" className="icon--leading" /> Dica{" "}
             {dicaIdx >= 0
               ? "(" + (dicaIdx + 1) + "/" + d.dicas.length + ")"
               : ""}
@@ -210,7 +210,9 @@ export function DesafioCode({ d, onResolvido }) {
           animate={{ opacity: 1, y: 0 }}
           transition={springMedio}
         >
-          <b style={{ color: "var(--azul)" }}>💡 Dica {dicaIdx + 1}:</b>{" "}
+          <b style={{ color: "var(--azul)" }}>
+            <Icon name="idea" className="icon--leading" />Dica {dicaIdx + 1}:
+          </b>{" "}
           {d.dicas[dicaIdx]}
         </motion.div>
       )}
@@ -250,7 +252,7 @@ export function DesafioCode({ d, onResolvido }) {
           </div>
           {erros.map((e, i) => (
             <div key={i} className="lint-item lint-erro">
-              <span className="lint-emoji">🚨</span>
+              <span className="lint-emoji"><Icon name="alert" className="lint-icon" /></span>
               <span>{e}</span>
             </div>
           ))}
@@ -314,9 +316,8 @@ export function DesafioCode({ d, onResolvido }) {
             animate={{ scale: 1, opacity: 1 }}
             transition={springMedio}
           >
-            {ehJava
-              ? "Compilou sem erros! ✓"
-              : "Funcionou, confere na tela! 🎉"}
+            <Icon name={ehJava ? "check" : "confetti"} className="icon--leading" />
+            {ehJava ? "Compilou sem erros!" : "Funcionou, confere na tela!"}
           </motion.div>
           <motion.div
             className="stack"
@@ -328,7 +329,9 @@ export function DesafioCode({ d, onResolvido }) {
               className="btn btn-lima"
               onClick={() => onResolvido(!usouGabarito)}
             >
-              {usouGabarito ? "Seguir (sem pontuar)" : "Fechar desafio ✓"}
+              {usouGabarito ? "Seguir (sem pontuar)" : (
+                <>Fechar desafio <Icon name="check" className="icon--trailing" /></>
+              )}
             </button>
           </motion.div>
         </>

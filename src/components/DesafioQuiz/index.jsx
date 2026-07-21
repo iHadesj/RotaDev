@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { estouraConfete, itemSobe, listaStagger, springMedio } from "../../config/appConfig.js";
+import { Icon } from "../ui/index.jsx";
 
 const LETRAS = ["A", "B", "C", "D"];
 
@@ -56,7 +57,8 @@ export function DesafioQuiz({ d, onResolvido }) {
           transition={springMedio}
         >
           <p className="feedback-titulo">
-            {acertou ? "Boa, acertou! ✅" : "Não foi dessa vez ❌"}
+            <Icon name={acertou ? "check" : "cross"} className="icon--leading" />
+            {acertou ? "Boa, acertou!" : "Não foi dessa vez"}
           </p>
           <p className="feedback-txt">{d.explain}</p>
         </motion.div>
@@ -72,7 +74,7 @@ export function DesafioQuiz({ d, onResolvido }) {
             className="btn btn-laranja"
             onClick={() => onResolvido(acertou)}
           >
-            Próxima →
+            Próxima <Icon name="arrowRight" className="icon--trailing" />
           </button>
         </motion.div>
       )}

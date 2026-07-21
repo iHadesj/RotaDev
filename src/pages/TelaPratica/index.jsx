@@ -4,7 +4,7 @@ import { itemSobe, listaStagger } from "../../config/appConfig.js";
 import { carregaPratica, salvaPratica } from "../../services/progressService.js";
 import { TRILHAS_PRATICA } from "../../data/praticas.js";
 import { DesafioTeste } from "../../components/challenges/index.jsx";
-import { Letreiro } from "../../components/ui/index.jsx";
+import { Icon, Letreiro } from "../../components/ui/index.jsx";
 
 export function TelaPratica({ onVoltar }) {
   const [prog, setProg] = useState(() => carregaPratica());
@@ -43,7 +43,7 @@ export function TelaPratica({ onVoltar }) {
     <motion.div variants={listaStagger} initial="inicial" animate="entra">
       <Letreiro
         mini
-        rota="MODO TREINO · PREPARA PRO MERCADO 💪"
+        rota="MODO TREINO · PREPARA PRO MERCADO"
         destino={"CÓDIGO DE\nVERDADE"}
       />
 
@@ -70,7 +70,9 @@ export function TelaPratica({ onVoltar }) {
                 className={"pratica-item" + (feito ? " pratica-item--ok" : "")}
                 onClick={() => setAberto(p)}
               >
-                <span className="pratica-item-check">{feito ? "✅" : "▶"}</span>
+                <span className="pratica-item-check">
+                  <Icon name={feito ? "check" : "play"} title={feito ? "Concluído" : "Abrir desafio"} />
+                </span>
                 <span className="pratica-item-corpo">
                   <span className="pratica-item-titulo">{p.titulo}</span>
                   <span className="pratica-item-meta">

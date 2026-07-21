@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { springMedio } from "../../config/appConfig.js";
 import { NOME_TIPO_DESAFIO } from "../../config/challengeConfig.js";
 import { DesafioCode, DesafioEncaixe, DesafioQuiz } from "../../components/challenges/index.jsx";
-import { Letreiro } from "../../components/ui/index.jsx";
+import { Icon, Letreiro } from "../../components/ui/index.jsx";
 import { montaCorreDoDia, streakAtual } from "../../services/progressService.js";
 
 export function TelaCorreDoDia({ curso, scores, diario, onConcluir, onVoltar }) {
@@ -30,7 +30,7 @@ export function TelaCorreDoDia({ curso, scores, diario, onConcluir, onVoltar }) 
     <div>
       <Letreiro
         mini
-        rota={"CORRE DO DIA · " + (streak > 0 ? "🔥 x" + streak : "acende o fogo")}
+        rota={"CORRE DO DIA · " + (streak > 0 ? "SEQUÊNCIA X" + streak : "ACENDE O FOGO")}
         destino={sessao.revisao ? "Revisão: " + sessao.mod.nome : sessao.mod.nome}
       />
       {!terminou && (
@@ -55,7 +55,7 @@ export function TelaCorreDoDia({ curso, scores, diario, onConcluir, onVoltar }) 
               </div>
               <div className="stack">
                 <button className="btn btn-laranja" onClick={() => setPasso(1)}>
-                  Bora pros 2 desafios 🔥
+                  Bora pros 2 desafios <Icon name="flame" className="icon--trailing" />
                 </button>
               </div>
             </>
@@ -65,7 +65,7 @@ export function TelaCorreDoDia({ curso, scores, diario, onConcluir, onVoltar }) 
               <div className="quiz-topo">
                 <span>Desafio {passo} / 2</span>
                 <span className="tipo-badge">{NOME_TIPO_DESAFIO[d.tipo]}</span>
-                <span>✔ {acertos}</span>
+                <span className="icon-line"><Icon name="check" /> {acertos}</span>
               </div>
               {d.tipo === "quiz" && <DesafioQuiz d={d} onResolvido={resolvido} />}
               {d.tipo === "encaixe" && <DesafioEncaixe d={d} onResolvido={resolvido} />}
@@ -80,14 +80,14 @@ export function TelaCorreDoDia({ curso, scores, diario, onConcluir, onVoltar }) 
               animate={{ scale: 1, opacity: 1 }}
               transition={springMedio}
             >
-              <p className="trofeu">🔥</p>
+              <p className="trofeu trofeu--fogo"><Icon name="flame" title="Sequência" /></p>
               <p className="placar">x{streakAtual(diario)}</p>
               <p className="placar-sub">
                 {acertos}/2 no corre de hoje · não perde o busão de amanhã!
               </p>
               {diario && diario.melhor > 1 && (
                 <p className="card-txt" style={{ textAlign: "center", marginTop: 10 }}>
-                  Teu recorde: 🔥 x{diario.melhor}
+                  Teu recorde: <Icon name="flame" /> x{diario.melhor}
                   {sessao.revisao ? " · linha zerada, hoje foi revisão." : ""}
                 </p>
               )}

@@ -47,6 +47,28 @@
 .ddc *, .ddc *::before, .ddc *::after { box-sizing: border-box; }
 .ddc-shell { width: 100%; max-width: 580px; }
 
+/* ---------- ícones de linha ----------
+   SVGs próprios: traço firme, quinas secas e proporção compacta. O desenho
+   conversa com as placas do app sem virar um adesivo neobrutalista exagerado. */
+.brut-icon {
+  width: 1.15em; height: 1.15em;
+  display: inline-block; vertical-align: -0.2em; flex: 0 0 auto;
+  overflow: visible;
+}
+.icon--leading { margin-right: 0.42em; }
+.icon--trailing { margin-left: 0.42em; }
+.icon-line { display: inline-flex; align-items: center; gap: 6px; }
+.icon-mark {
+  width: 42px; height: 42px; display: inline-flex; align-items: center;
+  justify-content: center; border: 3px solid currentColor; background: var(--branco);
+  box-shadow: 4px 4px 0 var(--sombra); transform: rotate(-2deg);
+}
+.icon-mark .brut-icon { width: 25px; height: 25px; }
+.trofeu .brut-icon { width: 58px; height: 58px; stroke-width: 1.8; }
+.trofeu--fogo { color: var(--laranja); }
+.lint-icon { width: 19px; height: 19px; margin-top: 1px; }
+.teste-marca .brut-icon { width: 19px; height: 19px; }
+
 /* ---------- letreiro de busão (assinatura) ---------- */
 .letreiro {
   background: var(--branco);

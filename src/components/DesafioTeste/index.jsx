@@ -8,7 +8,7 @@ import {
   preCarregaLibs,
   traduzErro,
 } from "../../utils/challengeRuntime.js";
-import { Editor, PainelLint } from "../ui/index.jsx";
+import { Editor, Icon, PainelLint } from "../ui/index.jsx";
 
 const TIMEOUT_MS = 2500; // watchdog de execução: mata loop infinito que trava o iframe
 const CARGA_MS = 8000; // watchdog de carregamento: prazo até o código começar (Babel na 1ª vez)
@@ -195,14 +195,14 @@ export function DesafioTeste({ d, onResolvido, onVoltar }) {
 
       <div className="toolbar">
         <button className="btn btn-laranja" onClick={rodar}>
-          ▶ Rodar os testes
+          <Icon name="play" className="icon--leading" /> Rodar os testes
         </button>
         {d.dicas && d.dicas.length > 0 && (
           <button
             className="btn btn-fantasma"
             onClick={() => setDicaIdx((i) => Math.min(i + 1, d.dicas.length - 1))}
           >
-            💡 Dica{" "}
+            <Icon name="idea" className="icon--leading" /> Dica{" "}
             {dicaIdx >= 0 ? "(" + (dicaIdx + 1) + "/" + d.dicas.length + ")" : ""}
           </button>
         )}
@@ -221,7 +221,9 @@ export function DesafioTeste({ d, onResolvido, onVoltar }) {
           animate={{ opacity: 1, y: 0 }}
           transition={springMedio}
         >
-          <b style={{ color: "var(--azul)" }}>💡 Dica {dicaIdx + 1}:</b>{" "}
+          <b style={{ color: "var(--azul)" }}>
+            <Icon name="idea" className="icon--leading" />Dica {dicaIdx + 1}:
+          </b>{" "}
           {d.dicas[dicaIdx]}
         </motion.div>
       )}
@@ -260,7 +262,7 @@ export function DesafioTeste({ d, onResolvido, onVoltar }) {
             <span>tradução amigável</span>
           </div>
           <div className="lint-item lint-erro">
-            <span className="lint-emoji">🚨</span>
+            <span className="lint-emoji"><Icon name="alert" className="lint-icon" /></span>
             <span>{erroGlobal}</span>
           </div>
         </div>
@@ -275,13 +277,19 @@ export function DesafioTeste({ d, onResolvido, onVoltar }) {
           <pre className="terminal terminal-log">
             {logs.map((l, i) => (
               <span key={i} className={"con-linha con-" + (l.nivel || "log")}>
-                {(l.nivel === "error" ? "⛔ " : l.nivel === "warn" ? "⚠️ " : "› ") +
-                  l.texto}
+                {l.nivel === "error" ? (
+                  <Icon name="cross" className="icon--leading" />
+                ) : l.nivel === "warn" ? (
+                  <Icon name="warning" className="icon--leading" />
+                ) : "› "}
+                {l.texto}
                 {"\n"}
               </span>
             ))}
             {erroRaw && (
-              <span className="con-linha con-error">{"⛔ " + erroRaw}</span>
+              <span className="con-linha con-error">
+                <Icon name="cross" className="icon--leading" />{erroRaw}
+              </span>
             )}
           </pre>
         </div>
@@ -307,10 +315,15 @@ export function DesafioTeste({ d, onResolvido, onVoltar }) {
               <div key={i} className={"teste-caso teste-caso--" + estado}>
                 <div className="teste-caso-topo">
                   <span className="teste-marca">
-                    {estado === "ok" ? "✅" : estado === "falhou" ? "❌" : "⏳"}
+                    <Icon
+                      name={estado === "ok" ? "check" : estado === "falhou" ? "cross" : "hourglass"}
+                      title={estado === "ok" ? "Passou" : estado === "falhou" ? "Falhou" : "Rodando"}
+                    />
                   </span>
                   <code className="teste-chamada">
-                    {c.oculto ? "🔒 caso oculto" : assinaturaCaso(d.funcao, c.entrada)}
+                    {c.oculto ? (
+                      <><Icon name="lock" className="icon--leading" />caso oculto</>
+                    ) : assinaturaCaso(d.funcao, c.entrada)}
                   </code>
                 </div>
                 {r && !r.passou && (
@@ -360,7 +373,8 @@ export function DesafioTeste({ d, onResolvido, onVoltar }) {
             animate={{ scale: 1, opacity: 1 }}
             transition={springMedio}
           >
-            Passou em todos os casos! 🎉
+            <Icon name="confetti" className="icon--leading" />
+            Passou em todos os casos!
           </motion.div>
           <motion.div
             className="stack"
@@ -369,7 +383,9 @@ export function DesafioTeste({ d, onResolvido, onVoltar }) {
             transition={{ delay: 0.15 }}
           >
             <button className="btn btn-lima" onClick={() => onResolvido(!usouGabarito)}>
-              {usouGabarito ? "Seguir (sem pontuar)" : "Fechar desafio ✓"}
+              {usouGabarito ? "Seguir (sem pontuar)" : (
+                <>Fechar desafio <Icon name="check" className="icon--trailing" /></>
+              )}
             </button>
           </motion.div>
         </>

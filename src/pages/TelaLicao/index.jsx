@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Letreiro } from "../../components/ui/index.jsx";
+import { Icon, Letreiro } from "../../components/ui/index.jsx";
 
 export function TelaLicao({ modulo, onDesafio, onVoltar }) {
   const [i, setI] = useState(0);
@@ -53,17 +53,17 @@ export function TelaLicao({ modulo, onDesafio, onVoltar }) {
       <div className="stack">
         {!ultima && (
           <button className="btn btn-laranja" onClick={() => setI(i + 1)}>
-            Próximo conceito →
+            Próximo conceito <Icon name="arrowRight" className="icon--trailing" />
           </button>
         )}
         {ultima && (
           <button className="btn btn-azul" onClick={onDesafio}>
-            Começar os desafios 🔥
+            Começar os desafios <Icon name="flame" className="icon--trailing" />
           </button>
         )}
         {i > 0 && (
           <button className="btn btn-fantasma" onClick={() => setI(i - 1)}>
-            ← Voltar um conceito
+            <Icon name="arrowLeft" className="icon--leading" /> Voltar um conceito
           </button>
         )}
         <button className="btn btn-fantasma" onClick={onVoltar}>

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { chuvaDeConfete, estouraConfete, springMedio } from "../../config/appConfig.js";
-import { Letreiro } from "../../components/ui/index.jsx";
+import { Icon, Letreiro } from "../../components/ui/index.jsx";
 import { useContagem } from "../../hooks/useContagem.js";
 
 export function TelaResultado({
@@ -24,7 +24,7 @@ export function TelaResultado({
   }, []);
 
   let msg;
-  if (score === total) msg = "GABARITOU! 💛";
+  if (score === total) msg = "GABARITOU!";
   else if (score >= 4) msg = "Mandou muito bem!";
   else if (score >= 3) msg = "Passou! Está no caminho.";
   else msg = "Foi por pouco... revisa e tenta de novo.";
@@ -71,7 +71,8 @@ export function TelaResultado({
             className="card-txt"
             style={{ textAlign: "center", marginTop: 12 }}
           >
-            Último ponto concluído! Volta pra trilha pra ver seu troféu. 🏆
+            Último ponto concluído! Volta pra trilha pra ver seu troféu.
+            <Icon name="trophy" className="icon--trailing" />
           </p>
         )}
       </motion.div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Icon } from "../ui/index.jsx";
 
 export function EntregaProjeto({ projeto, onConcluir }) {
   const [marcados, setMarcados] = useState(() =>
@@ -50,7 +51,7 @@ export function EntregaProjeto({ projeto, onConcluir }) {
         disabled={!completo}
         onClick={onConcluir}
       >
-        Validar projeto e concluir módulo ✓
+        Validar projeto e concluir módulo <Icon name="check" className="icon--trailing" />
       </button>
       {!completo && (
         <p className="projeto-pendente" role="status">

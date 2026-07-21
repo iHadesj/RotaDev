@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { springMedio } from "../../config/appConfig.js";
+import { Icon } from "../ui/index.jsx";
 
 export function PainelLint({ itens }) {
   if (!itens || !itens.length) return null;
-  const icone = { erro: "🚨", aviso: "⚠️", dica: "💡" };
+  const icone = { erro: "alert", aviso: "warning", dica: "idea" };
   return (
     <div className="painel">
       <div className="painel-titulo">
@@ -18,7 +19,9 @@ export function PainelLint({ itens }) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ ...springMedio, delay: i * 0.06 }}
         >
-          <span className="lint-emoji">{icone[it.nivel] || "💡"}</span>
+          <span className="lint-emoji">
+            <Icon name={icone[it.nivel] || "idea"} className="lint-icon" />
+          </span>
           <span>{it.msg}</span>
         </motion.div>
       ))}

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { chuvaDeConfete, getLevel, itemLado, listaStagger, springMedio } from "../../config/appConfig.js";
-import { Letreiro, XPBar } from "../../components/ui/index.jsx";
+import { Icon, Letreiro, XPBar } from "../../components/ui/index.jsx";
 import { calcXP } from "../../services/progressService.js";
 
 export function TelaTrilha({ curso, scores, onAbrir, onReset, onTrocarCurso }) {
@@ -41,7 +41,7 @@ export function TelaTrilha({ curso, scores, onAbrir, onReset, onTrocarCurso }) {
                       : "")
                 }
               >
-                {feito ? "✓" : String(i + 1).padStart(2, "0")}
+                {feito ? <Icon name="check" title="Concluído" /> : String(i + 1).padStart(2, "0")}
               </span>
               <button
                 className="parada-card"
@@ -51,7 +51,9 @@ export function TelaTrilha({ curso, scores, onAbrir, onReset, onTrocarCurso }) {
                 <span className="parada-tag">
                   <span>
                     {m.tag}
-                    {!liberado ? " · 🔒 fechado" : ""}
+                    {!liberado && (
+                      <span className="icon-line"> · <Icon name="lock" /> fechado</span>
+                    )}
                   </span>
                   {score !== undefined && (
                     <span className="parada-score">
@@ -60,7 +62,7 @@ export function TelaTrilha({ curso, scores, onAbrir, onReset, onTrocarCurso }) {
                   )}
                 </span>
                 <p className="parada-nome">{m.nome}</p>
-                <p className="parada-local">📍 {m.ponto}</p>
+                <p className="parada-local"><Icon name="pin" /> {m.ponto}</p>
                 <p className="parada-desc">{m.desc}</p>
               </button>
             </motion.div>
@@ -75,7 +77,7 @@ export function TelaTrilha({ curso, scores, onAbrir, onReset, onTrocarCurso }) {
           animate={{ scale: 1, opacity: 1 }}
           transition={springMedio}
         >
-          <p className="trofeu">🏆</p>
+          <p className="trofeu"><Icon name="trophy" title="Troféu" /></p>
           <p
             className="card-titulo"
             style={{
@@ -94,7 +96,8 @@ export function TelaTrilha({ curso, scores, onAbrir, onReset, onTrocarCurso }) {
       )}
       <div className="stack">
         <button className="btn btn-fantasma" onClick={onTrocarCurso}>
-          ↩ Trocar de linha (outro curso)
+          <Icon name="return" className="icon--leading" />
+          Trocar de linha (outro curso)
         </button>
       </div>
       <p className="footer-note">

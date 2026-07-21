@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { LayoutGroup, motion } from "framer-motion";
 import { estouraConfete, springMedio } from "../../config/appConfig.js";
 import { embaralhaDiferente } from "../../utils/challengeRuntime.js";
+import { Icon } from "../ui/index.jsx";
 
 export function DesafioEncaixe({ d, onResolvido }) {
   const grupoLayout = useId();
@@ -146,7 +147,7 @@ export function DesafioEncaixe({ d, onResolvido }) {
               {res.ok
                 ? usouGabarito
                   ? "Montado com o gabarito"
-                  : "Encaixou perfeito! 🧩"
+                  : <><Icon name="puzzle" className="icon--leading" />Encaixou perfeito!</>
                 : "Quase lá..."}
             </p>
             <p className="feedback-txt">{res.msg}</p>
@@ -168,7 +169,9 @@ export function DesafioEncaixe({ d, onResolvido }) {
               className="btn btn-lima"
               onClick={() => onResolvido(!usouGabarito)}
             >
-              {usouGabarito ? "Seguir (sem pontuar)" : "Fechar desafio ✓"}
+              {usouGabarito ? "Seguir (sem pontuar)" : (
+                <>Fechar desafio <Icon name="check" className="icon--trailing" /></>
+              )}
             </button>
           )}
         </div>
