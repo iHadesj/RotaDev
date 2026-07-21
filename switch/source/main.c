@@ -1,4 +1,4 @@
-// Dev do Corre — wrapper homebrew pro Nintendo Switch (Atmosphère).
+// Rota Dev — wrapper homebrew pro Nintendo Switch (Atmosphère).
 //
 // Este NRO não renderiza nada por conta própria: ele sobe o Web Applet
 // OFFLINE do sistema (nifm/web) apontando pro build do Vite que viaja
@@ -21,7 +21,7 @@ static void mostraErro(Result rc, const char* etapa)
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     padInitializeDefault(&pad);
 
-    printf("\n  Dev do Corre — falha ao iniciar\n");
+    printf("\n  Rota Dev — falha ao iniciar\n");
     printf("  Etapa : %s\n", etapa);
     printf("  Erro  : 0x%08x\n\n", rc);
     printf("  Pressione + para sair.\n");

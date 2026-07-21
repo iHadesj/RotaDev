@@ -1,4 +1,4 @@
-# Dev do Corre — homebrew Switch (.nro)
+# Rota Dev — homebrew Switch (.nro)
 
 Wrapper que sobe o **Web Applet offline** do sistema apontando pro build do
 Vite embutido no RomFS. Roda em Switch com Atmosphère CFW.
@@ -30,14 +30,14 @@ switch/
    ```
    make
    ```
-   Sai um `dev-do-corre.nro` aqui na pasta.
+   Sai um `rota-dev.nro` aqui na pasta.
 
 ## Instalar no console
 
-Copie `dev-do-corre.nro` pro SD em:
+Copie `rota-dev.nro` pro SD em:
 
 ```
-/switch/dev-do-corre/dev-do-corre.nro
+/switch/rota-dev/rota-dev.nro
 ```
 
 Abra pelo **hbmenu** (Album com o jogo segurando R, ou o hbmenu via título).

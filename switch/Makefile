@@ -29,7 +29,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-TARGET		:=	dev-do-corre
+TARGET		:=	rota-dev
 BUILD		:=	build
 SOURCES		:=	source
 DATA		:=	data
@@ -39,7 +39,7 @@ ROMFS		:=	romfs
 #---------------------------------------------------------------------------------
 # Metadados que vão pro .nacp (nome/autor/versão que aparecem no hbmenu)
 #---------------------------------------------------------------------------------
-APP_TITLE	:=	Dev do Corre
+APP_TITLE	:=	Rota Dev
 APP_AUTHOR	:=	Eduardo Ferreira
 APP_VERSION	:=	2.0.0
 

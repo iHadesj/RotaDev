@@ -873,7 +873,7 @@ export const MODULES_WEB = [
       {
         t: "O que é HTML, afinal?",
         txt: "HTML é a ESTRUTURA da página — o esqueleto. Ele diz O QUE existe na tela: um título, um parágrafo, uma lista, uma imagem. Tudo é feito de TAGS: quase toda tag abre <assim> e fecha </assim>, e o conteúdo vai no meio.",
-        code: "<h1>Dev do Corre</h1>\n<p>Direto do extremo sul.</p>",
+        code: "<h1>Rota Dev</h1>\n<p>Direto do extremo sul.</p>",
       },
       {
         t: "Títulos, parágrafos e listas",
@@ -906,7 +906,7 @@ export const MODULES_WEB = [
           "Monta a estrutura básica: um main com título e parágrafo dentro:",
         pecas: [
           "<main>",
-          "  <h1>Dev do Corre</h1>",
+          "  <h1>Rota Dev</h1>",
           "  <p>Do extremo sul pro mundo.</p>",
           "</main>",
         ],
@@ -2292,7 +2292,7 @@ export const DESAFIOS_DIARIOS = {
       tipo: "encaixe",
       enunciado: "Monta o link que leva pro site (abre e fecha certinho):",
       pecas: [
-        '<a href="https://devdocorre.com">',
+        '<a href="https://rotadev.com">',
         "  Cola no site",
         "</a>",
       ],

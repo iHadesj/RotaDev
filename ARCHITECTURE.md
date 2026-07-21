@@ -1,4 +1,4 @@
-# Arquitetura do Dev do Corre
+# Arquitetura do Rota Dev
 
 O `App.jsx` é somente o orquestrador da navegação, do curso ativo e do progresso. Conteúdo, interface, persistência e execução dos desafios não vivem mais no componente raiz.
 

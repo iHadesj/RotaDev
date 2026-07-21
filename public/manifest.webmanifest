@@ -1,6 +1,6 @@
 {
-  "name": "Dev do Corre",
-  "short_name": "Dev do Corre",
+  "name": "Rota Dev",
+  "short_name": "Rota Dev",
   "description": "Aprenda programação no trajeto: HTML, CSS, JS, TypeScript, React e Java — funciona offline, feito pra estudar no busão.",
   "lang": "pt-BR",
   "start_url": "/",
